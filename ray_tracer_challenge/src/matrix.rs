@@ -374,3 +374,18 @@ fn matrix4x4_mul_tuple_test() {
     let t = tuple_i(124,316,508,700);
     assert_eq!(r, t);
 }
+
+#[test]
+fn matrix_identity_test() {
+    let a = matrix2x2_create_i(1,2,3,4);
+    let b = matrix3x3_create_i(1,2,3,4,5,6,7,8,9);
+    let c = matrix4x4_create_i(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+
+    let ar = a * MATRIX_2X2_IDENTITY;
+    let br = b * MATRIX_3X3_IDENTITY;
+    let cr = c * MATRIX_4X4_IDENTITY;
+
+    assert_eq!(a, ar);
+    assert_eq!(b, br);
+    assert_eq!(c, cr);
+}
