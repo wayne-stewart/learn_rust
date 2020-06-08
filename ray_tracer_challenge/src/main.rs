@@ -2,7 +2,15 @@ mod math;
 mod tuple;
 mod color;
 mod canvas;
+mod matrix;
 use std::io::prelude::*;
+
+/*
+view ppm files
+http://paulcuth.me.uk/netpbm-viewer/
+
+
+*/
 
 fn main() {
     let mut canvas = canvas::create_canvas(5, 3);

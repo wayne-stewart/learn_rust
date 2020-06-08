@@ -3,11 +3,11 @@ use crate::math::fequal;
 
 #[derive(Debug)]
 //#[derive(PartialEq)]
-struct Tuple {
-    x: f32,
-    y: f32,
-    z: f32,
-    w: f32 // 0 is a vector 1 is a point
+pub struct Tuple {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub w: f32 // 0 is a vector 1 is a point
 }
 
 /*
@@ -96,7 +96,7 @@ impl ops::Div<f32> for Tuple {
     }
 }
 
-fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+pub fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
     Tuple {
         x,
         y,
@@ -105,7 +105,7 @@ fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
     }
 }
 
-fn tuple_i(x: i32, y: i32, z: i32, w: i32) -> Tuple {
+pub fn tuple_i(x: i32, y: i32, z: i32, w: i32) -> Tuple {
     Tuple {
         x: x as f32,
         y: y as f32,
@@ -114,7 +114,7 @@ fn tuple_i(x: i32, y: i32, z: i32, w: i32) -> Tuple {
     }
 }
 
-fn point(x: f32, y: f32, z: f32) -> Tuple {
+pub fn point(x: f32, y: f32, z: f32) -> Tuple {
     tuple(x, y, z, 1.0)
 }
 
