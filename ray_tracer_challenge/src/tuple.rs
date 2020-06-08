@@ -1,5 +1,5 @@
 use std::ops;
-
+use crate::math::fequal;
 
 #[derive(Debug)]
 //#[derive(PartialEq)]
@@ -67,7 +67,7 @@ impl ops::Neg for Tuple {
 }
 
 /*
-    this allows to use * for multiplication
+    this allows to use * for multiplication with a scalar
 */
 impl ops::Mul<f32> for Tuple {
     type Output = Tuple;
@@ -93,19 +93,6 @@ impl ops::Div<f32> for Tuple {
             z: self.z / rhs,
             w: self.w / rhs
         }
-    }
-}
-
-fn fequal(a: f32, b: f32) -> bool {
-    let mut x = a - b;
-    if x < 0.0 {
-        x *= -1.0;
-    }
-    if x > 0.0001 {
-        return false;
-    }
-    else {
-        return true;
     }
 }
 
