@@ -248,6 +248,30 @@ pub fn matrix4x4_create_i(
     )
 }
 
+fn matrix2x2_transpose(m: Matrix2x2) -> Matrix2x2 {
+    matrix2x2_create(
+        m.r1c1, m.r2c1,
+        m.r1c2, m.r2c2
+    )
+}
+
+fn matrix3x3_transpose(m: Matrix3x3) -> Matrix3x3 {
+    matrix3x3_create(
+        m.r1c1, m.r2c1, m.r3c1,
+        m.r1c2, m.r2c2, m.r3c2,
+        m.r1c3, m.r2c3, m.r3c3
+    )
+}
+
+fn matrix4x4_transpose(m: Matrix4x4) -> Matrix4x4 {
+    matrix4x4_create(
+        m.r1c1, m.r2c1, m.r3c1, m.r4c1,
+        m.r1c2, m.r2c2, m.r3c2, m.r4c2,
+        m.r1c3, m.r2c3, m.r3c3, m.r4c3,
+        m.r1c4, m.r2c4, m.r3c4, m.r4c4
+    )
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -388,4 +412,23 @@ fn matrix_identity_test() {
     assert_eq!(a, ar);
     assert_eq!(b, br);
     assert_eq!(c, cr);
+}
+
+#[test]
+fn matrix_transpose_test() {
+    let a = matrix2x2_create_i(1,2,3,4);
+    let b = matrix3x3_create_i(1,2,3,4,5,6,7,8,9);
+    let c = matrix4x4_create_i(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+
+    let ar = matrix2x2_transpose(a);
+    let br = matrix3x3_transpose(b);
+    let cr = matrix4x4_transpose(c);
+
+    let at = matrix2x2_create_i(1,3,2,4);
+    let bt = matrix3x3_create_i(1,4,7,2,5,8,3,6,9);
+    let ct = matrix4x4_create_i(1,5,9,13,2,6,10,14,3,7,11,15,4,8,12,16);
+
+    assert_eq!(ar, at);
+    assert_eq!(br, bt);
+    assert_eq!(cr, ct);
 }

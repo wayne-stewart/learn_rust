@@ -129,6 +129,7 @@ fn set_get_pixel_test() {
 
 #[test]
 fn to_ppm_test() {
-    let mut canvas = create_canvas(5, 3);
+    let canvas = create_canvas(5, 3);
     let s = to_ppm(&canvas);
+    println!("{}",s);
 }

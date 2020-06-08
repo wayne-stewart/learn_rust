@@ -3,7 +3,6 @@ mod tuple;
 mod color;
 mod canvas;
 mod matrix;
-use std::io::prelude::*;
 
 /*
 view ppm files
