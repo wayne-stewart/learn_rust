@@ -1,12 +1,9 @@
 use std::ops;
 use crate::math::fequal;
 use crate::tuple::Tuple;
-use crate::tuple::tuple;
-use crate::tuple::tuple_i;
-use crate::tuple::point;
-use crate::tuple::point_i;
-use crate::tuple::vector;
-use crate::tuple::vector_i;
+use crate::tuple;
+use crate::point;
+use crate::vector;
 
 
 // #[repr(C, packed)]
@@ -356,7 +353,7 @@ impl ops::Mul for Matrix4x4 {
 impl ops::Mul<Tuple> for Matrix4x4 {
     type Output = Tuple;
     fn mul(self, rhs: Tuple) -> Tuple {
-        tuple (
+        tuple! (
             self.r1c1 * rhs.x + self.r1c2 * rhs.y + self.r1c3 * rhs.z + self.r1c4 * rhs.w,
             self.r2c1 * rhs.x + self.r2c2 * rhs.y + self.r2c3 * rhs.z + self.r2c4 * rhs.w,
             self.r3c1 * rhs.x + self.r3c2 * rhs.y + self.r3c3 * rhs.z + self.r3c4 * rhs.w,
@@ -501,9 +498,9 @@ fn matrix4x4_mul_test() {
 #[test]
 fn matrix4x4_mul_tuple_test() {
     let a = Matrix4x4::from_i32(1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31);
-    let b = tuple_i(2,4,8,10);
+    let b = tuple!(2,4,8,10);
     let r = a * b;
-    let t = tuple_i(124,316,508,700);
+    let t = tuple!(124,316,508,700);
     assert_eq!(r, t);
 }
 
@@ -653,36 +650,36 @@ fn matrix4x4_multiply_inverse_test() {
 
 #[test]
 fn translate_test() {
-    let p = point(-3.0, 4.0, 5.0);
-    let v = vector(-3.0, 4.0, 5.0);
+    let p = point!(-3, 4, 5);
+    let v = vector!(-3.0, 4.0, 5.0);
 
     // moves point in direction of translation vector
     let translate = Matrix4x4::translation(5.0, -3.0, 2.0);
-    assert_eq!(translate * p, point(2.0, 1.0, 7.0));
+    assert_eq!(translate * p, point!(2, 1, 7));
 
     // inverting moves point in oposite direction
     let inverse = translate.inverse();
-    assert_eq!(inverse * p, point(-8.0, 7.0, 3.0));
+    assert_eq!(inverse * p, point!(-8, 7, 3));
 
     // translation matrix does not affect vectors
-    assert_eq!(translate * v, vector(-3.0, 4.0, 5.0));
+    assert_eq!(translate * v, vector!(-3.0, 4.0, 5.0));
 }
 
 #[test]
 fn scaling_test() {
-    let p = point_i(-4, 6, 8);
-    let v = vector_i(-4, 6, 8);
+    let p = point!(-4, 6, 8);
+    let v = vector!(-4, 6, 8);
 
     // scale point by each value in the scale matrix
     let scale = Matrix4x4::scaling(2.0, 3.0, 4.0);
-    assert_eq!(scale * p, point_i(-8, 18, 32));
+    assert_eq!(scale * p, point!(-8, 18, 32));
 
     // scaling also applies to vectors
-    assert_eq!(scale * v, vector_i(-8, 18, 32));
+    assert_eq!(scale * v, vector!(-8, 18, 32));
 
     // inverse of scaling shrinks by same values
     let inverse = scale.inverse();
-    assert_eq!(inverse * v, vector_i(-2, 2, 2));
-    assert_eq!(inverse * p, point_i(-2, 2, 2));
+    assert_eq!(inverse * v, vector!(-2, 2, 2));
+    assert_eq!(inverse * p, point!(-2, 2, 2));
 }
 
