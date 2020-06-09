@@ -271,11 +271,19 @@ fn matrix4x4_transpose(m: &Matrix4x4) -> Matrix4x4 {
         m.r1c4, m.r2c4, m.r3c4, m.r4c4
     )
 }
-
+/*
+    computing the determinanct of a 2x2 matrix
+*/
 fn matrix2x2_determinant(m: &Matrix2x2) -> f32 {
     m.r1c1 * m.r2c2 - m.r1c2 * m.r2c1
 }
 
+/*
+    getting the submatrix of row, col
+
+    submatrix of 3x3 returns matrix 2x2 created
+    by excluding the input row and col
+*/
 fn matrix3x3_submatrix(m: &Matrix3x3, row: u8, col: u8) -> Matrix2x2 {
     let arr = [
             m.r1c1, m.r1c2, m.r1c3,
@@ -295,6 +303,12 @@ fn matrix3x3_submatrix(m: &Matrix3x3, row: u8, col: u8) -> Matrix2x2 {
     matrix2x2_create(t[0],t[1],t[2],t[3])
 }
 
+/*
+    getting the submatrix of row, col
+
+    submatrix of 4x4 returns matrix 3x3 created
+    by excluding the input row and col
+*/
 fn matrix4x4_submatrix(m: &Matrix4x4, row: u8, col: u8) -> Matrix3x3 {
     let arr = [
             m.r1c1, m.r1c2, m.r1c3, m.r1c4,
@@ -313,6 +327,16 @@ fn matrix4x4_submatrix(m: &Matrix4x4, row: u8, col: u8) -> Matrix3x3 {
         }
     }
     matrix3x3_create(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8])
+}
+
+/*
+    getting the minor of row, cell
+
+    the minor is the determinant of the submatrix at row, col
+*/
+fn matrix3x3_minor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
+    let submatrix = matrix3x3_submatrix(&m, row, col);
+    matrix2x2_determinant(&submatrix)
 }
 
 #[test]
@@ -497,4 +521,11 @@ fn matrix4x4_submatrix_test() {
     let b = matrix4x4_submatrix(&a, 2, 1);
     let c = matrix3x3_create_i(1,3,4, 5,7,8, 13,15,16);
     assert_eq!(b, c);
+}
+
+#[test]
+fn matrix3x3_minor_test() {
+    let a = matrix3x3_create_i(3,5,0,2,-1,-7,6,-1,5);
+    let b = matrix3x3_minor(&a, 1, 0);
+    assert_eq!(b, 25.0);
 }
