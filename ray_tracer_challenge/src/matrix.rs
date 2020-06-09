@@ -376,6 +376,22 @@ fn matrix4x4_cofactor(m: &Matrix4x4, row: u8, col: u8) -> f32 {
     cofactor(minor, row, col)
 }
 
+fn matrix4x4_inverse(m: &Matrix4x4) -> Matrix4x4 {
+    let determinant = matrix4x4_determinant(&m);
+    if determinant == 0.0 {
+        panic!("Attempting to invert and invertible matrix");
+    }
+    let mut t: [f32; 16] = [0.0; 16];
+    for row in 0..4 {
+        for col in 0..4 {
+            let c = matrix4x4_cofactor(&m, row, col);
+            let t_index = (col * 4 + row) as usize;
+            t[t_index] = c / determinant;
+        }
+    }
+    matrix4x4_create(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10],t[11],t[12],t[13],t[14],t[15])
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -590,4 +606,64 @@ fn matrix4x4_determinant_test() {
     assert_eq!(matrix4x4_cofactor(&a,0,2), 210.0);
     assert_eq!(matrix4x4_cofactor(&a,0,3), 51.0);
     assert_eq!(matrix4x4_determinant(&a), -4071.0);
+}
+
+#[test]
+fn matrix4x4_test_for_invertibility_test() {
+    let a = matrix4x4_create_i(6,4,4,4, 5,5,7,6, 4,-9,3,-7, 9,1,7,-6);
+    let b = matrix4x4_create_i(-4,2,-2,-3, 9,6,2,6, 0,-5,1,-5, 0,0,0,0);
+    assert_eq!(matrix4x4_determinant(&a), -2120.0);
+    assert_eq!(matrix4x4_determinant(&b), 0.0);
+}
+
+#[test]
+fn matrix4x4_inverse_test1() {
+    let a = matrix4x4_create_i(-5,2,6,-8, 1,-5,1,8, 7,7,-6,-7, 1,-3,7,4);
+    let b = matrix4x4_inverse(&a);
+    assert_eq!(matrix4x4_determinant(&a), 532.0);
+    assert_eq!(matrix4x4_cofactor(&a,2,3), -160.0);
+    assert!(fequal(b.r4c3, -160.0/532.0));
+    //assert_eq!(b.r4c3, -160.0/532.0);
+    assert_eq!(matrix4x4_cofactor(&a,3,2), 105.0);
+    assert!(fequal(b.r3c4, 105.0/532.0));
+    let c = matrix4x4_create(
+        0.21805, 0.45113, 0.24060, -0.04511,
+        -0.80827, -1.45677, -0.44361, 0.52068,
+        -0.07895, -0.22368, -0.05263, 0.19737,
+        -0.52256, -0.81391, -0.30075, 0.30639);
+    assert_eq!(b, c);
+}
+
+#[test]
+fn matrix4x4_inverse_test2() {
+    let a = matrix4x4_create_i(8,-5,9,2,7,5,6,1,-6,0,9,6,-3,0,-9,-4);
+    let b = matrix4x4_inverse(&a);
+    let c = matrix4x4_create(
+        -0.15385, -0.15385, -0.28205, -0.53846,
+        -0.07692, 0.12308, 0.02564, 0.03077,
+        0.35897, 0.35897, 0.43590, 0.92308,
+        -0.69231, -0.69231, -0.76923, -1.92308);
+    assert_eq!(b, c);
+}
+
+#[test]
+fn matrix4x4_inverse_test3() {
+    let a = matrix4x4_create_i(9,3,0,9,-5,-2,-6,-3,-4,9,6,4,-7,6,6,2);
+    let b = matrix4x4_inverse(&a);
+    let c = matrix4x4_create(
+        -0.04074, -0.07778, 0.14444, -0.22222,
+        -0.07778, 0.03333, 0.36667, -0.33333,
+        -0.02901, -0.14630, -0.10926, 0.12963,
+        0.17778, 0.06667, -0.26667, 0.33333);
+    assert_eq!(b, c);
+}
+
+#[test]
+fn matrix4x4_multiply_inverse_test() {
+    let a = matrix4x4_create_i(3,-9,7,3, 3,-8,2,-9, -4,4,4,1, -6,5,-1,1);
+    let b = matrix4x4_create_i(8,2,2,2, 3,-1,7,0, 7,0,5,4, 6,-2,0,5);
+    let c = a * b;
+    let d = matrix4x4_inverse(&b);
+    let e = c * d;
+    assert_eq!(a, e);
 }
