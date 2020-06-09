@@ -271,11 +271,24 @@ fn matrix4x4_transpose(m: &Matrix4x4) -> Matrix4x4 {
         m.r1c4, m.r2c4, m.r3c4, m.r4c4
     )
 }
-/*
-    computing the determinanct of a 2x2 matrix
-*/
+
 fn matrix2x2_determinant(m: &Matrix2x2) -> f32 {
     m.r1c1 * m.r2c2 - m.r1c2 * m.r2c1
+}
+
+fn matrix3x3_determinant(m: &Matrix3x3) -> f32 {
+    let a = matrix3x3_cofactor(&m, 0, 0);
+    let b = matrix3x3_cofactor(&m, 0, 1);
+    let c = matrix3x3_cofactor(&m, 0, 2);
+    a * m.r1c1 + b * m.r1c2 + c * m.r1c3
+}
+
+fn matrix4x4_determinant(m: &Matrix4x4) -> f32 {
+    let a = matrix4x4_cofactor(&m, 0, 0);
+    let b = matrix4x4_cofactor(&m, 0, 1);
+    let c = matrix4x4_cofactor(&m, 0, 2);
+    let d = matrix4x4_cofactor(&m, 0, 3);
+    a * m.r1c1 + b * m.r1c2 + c * m.r1c3 + d * m.r1c4
 }
 
 /*
@@ -339,14 +352,28 @@ fn matrix3x3_minor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
     matrix2x2_determinant(&submatrix)
 }
 
-fn matrix3x3_cofactor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
-    let minor = matrix3x3_minor(&m, row, col);
+fn matrix4x4_minor(m: &Matrix4x4, row: u8, col: u8) -> f32 {
+    let submatrix = matrix4x4_submatrix(&m, row, col);
+    matrix3x3_determinant(&submatrix)
+}
+
+fn cofactor(minor: f32, row: u8, col: u8) -> f32 {
     if (row + col) % 2 == 0 {
         return minor;
     }
     else {
         return -minor;
     }
+}
+
+fn matrix3x3_cofactor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
+    let minor = matrix3x3_minor(&m, row, col);
+    cofactor(minor, row, col)
+}
+
+fn matrix4x4_cofactor(m: &Matrix4x4, row: u8, col: u8) -> f32 {
+    let minor = matrix4x4_minor(&m, row, col);
+    cofactor(minor, row, col)
 }
 
 #[test]
@@ -544,4 +571,23 @@ fn matrix3x3_minor_cofactor_test() {
     assert_eq!(c, -12.0);
     assert_eq!(d, 25.0);
     assert_eq!(e, -25.0);
+}
+
+#[test]
+fn matrix3x3_deteriminant_test() {
+    let a = matrix3x3_create_i(1,2,6,-5,8,-4,2,6,4);
+    assert_eq!(matrix3x3_cofactor(&a,0,0), 56.0);
+    assert_eq!(matrix3x3_cofactor(&a,0,1), 12.0);
+    assert_eq!(matrix3x3_cofactor(&a,0,2), -46.0);
+    assert_eq!(matrix3x3_determinant(&a), -196.0);
+}
+
+#[test]
+fn matrix4x4_determinant_test() {
+    let a = matrix4x4_create_i(-2,-8,3,5, -3,1,7,3, 1,2,-9,6, -6,7,7,-9);
+    assert_eq!(matrix4x4_cofactor(&a,0,0), 690.0);
+    assert_eq!(matrix4x4_cofactor(&a,0,1), 447.0);
+    assert_eq!(matrix4x4_cofactor(&a,0,2), 210.0);
+    assert_eq!(matrix4x4_cofactor(&a,0,3), 51.0);
+    assert_eq!(matrix4x4_determinant(&a), -4071.0);
 }
