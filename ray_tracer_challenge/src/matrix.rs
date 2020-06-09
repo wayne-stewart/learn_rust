@@ -3,6 +3,8 @@ use crate::math::fequal;
 use crate::tuple::Tuple;
 use crate::tuple::tuple;
 use crate::tuple::tuple_i;
+use crate::tuple::point;
+use crate::tuple::vector;
 
 
 // #[repr(C, packed)]
@@ -392,6 +394,14 @@ fn matrix4x4_inverse(m: &Matrix4x4) -> Matrix4x4 {
     matrix4x4_create(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10],t[11],t[12],t[13],t[14],t[15])
 }
 
+fn translation_create(x: f32, y: f32, z: f32) -> Matrix4x4 {
+    let mut a = MATRIX_4X4_IDENTITY;
+    a.r1c4 = x;
+    a.r2c4 = y;
+    a.r3c4 = z;
+    return a;
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -666,4 +676,21 @@ fn matrix4x4_multiply_inverse_test() {
     let d = matrix4x4_inverse(&b);
     let e = c * d;
     assert_eq!(a, e);
+}
+
+#[test]
+fn translate_test() {
+    let p = point(-3.0, 4.0, 5.0);
+    let v = vector(-3.0, 4.0, 5.0);
+
+    // moves point in direction of translation vector
+    let translate = translation_create(5.0, -3.0, 2.0);
+    assert_eq!(translate * p, point(2.0, 1.0, 7.0));
+
+    // inverting moves point in oposite direction
+    let inverse = matrix4x4_inverse(&translate);
+    assert_eq!(inverse * p, point(-8.0, 7.0, 3.0));
+
+    // translation matrix does not affect vectors
+    assert_eq!(translate * v, vector(-3.0, 4.0, 5.0));
 }
