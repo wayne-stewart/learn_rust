@@ -4,7 +4,9 @@ use crate::tuple::Tuple;
 use crate::tuple::tuple;
 use crate::tuple::tuple_i;
 use crate::tuple::point;
+use crate::tuple::point_i;
 use crate::tuple::vector;
+use crate::tuple::vector_i;
 
 
 // #[repr(C, packed)]
@@ -402,6 +404,14 @@ fn translation_create(x: f32, y: f32, z: f32) -> Matrix4x4 {
     return a;
 }
 
+fn scaling_create(x: f32, y: f32, z: f32) -> Matrix4x4 {
+    let mut a = MATRIX_4X4_IDENTITY;
+    a.r1c1 = x;
+    a.r2c2 = y;
+    a.r3c3 = z;
+    return a;
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -694,3 +704,22 @@ fn translate_test() {
     // translation matrix does not affect vectors
     assert_eq!(translate * v, vector(-3.0, 4.0, 5.0));
 }
+
+#[test]
+fn scaling_test() {
+    let p = point_i(-4, 6, 8);
+    let v = vector_i(-4, 6, 8);
+
+    // scale point by each value in the scale matrix
+    let scale = scaling_create(2.0, 3.0, 4.0);
+    assert_eq!(scale * p, point_i(-8, 18, 32));
+
+    // scaling also applies to vectors
+    assert_eq!(scale * v, vector_i(-8, 18, 32));
+
+    // inverse of scaling shrinks by same values
+    let inverse = matrix4x4_inverse(&scale);
+    assert_eq!(inverse * v, vector_i(-2, 2, 2));
+    assert_eq!(inverse * p, point_i(-2, 2, 2));
+}
+

@@ -118,7 +118,7 @@ pub fn point(x: f32, y: f32, z: f32) -> Tuple {
     tuple(x, y, z, 1.0)
 }
 
-fn point_i (x: i32, y: i32, z: i32) -> Tuple {
+pub fn point_i (x: i32, y: i32, z: i32) -> Tuple {
     point(x as f32, y as f32, z as f32)
 }
 
@@ -126,7 +126,7 @@ pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
     tuple(x, y, z, 0.0)
 }
 
-fn vector_i(x: i32, y: i32, z: i32) -> Tuple {
+pub fn vector_i(x: i32, y: i32, z: i32) -> Tuple {
     vector(x as f32, y as f32, z as f32)
 }
 
