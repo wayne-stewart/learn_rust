@@ -78,7 +78,7 @@ impl ops::Sub for Tuple {
 /*
     this allows to use - for negation
 */
-const ZERO_VECTOR : Tuple = Tuple { x: 0.0, y: 0.0, z: 0.0, w: 0.0 };
+const ZERO_VECTOR : Tuple = vector!(0,0,0);
 
 impl ops::Neg for Tuple {
     type Output = Tuple;
@@ -117,40 +117,6 @@ impl ops::Div<f32> for Tuple {
         }
     }
 }
-
-// pub fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
-//     Tuple {
-//         x,
-//         y,
-//         z,
-//         w
-//     }
-// }
-
-// pub fn tuple_i(x: i32, y: i32, z: i32, w: i32) -> Tuple {
-//     Tuple {
-//         x: x as f32,
-//         y: y as f32,
-//         z: z as f32,
-//         w: w as f32
-//     }
-// }
-
-// pub fn point(x: f32, y: f32, z: f32) -> Tuple {
-//     tuple(x, y, z, 1.0)
-// }
-
-// pub fn point_i (x: i32, y: i32, z: i32) -> Tuple {
-//     point!(x as f32, y as f32, z as f32)
-// }
-
-// pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
-//     tuple(x, y, z, 0.0)
-// }
-
-// pub fn vector_i(x: i32, y: i32, z: i32) -> Tuple {
-//     vector(x as f32, y as f32, z as f32)
-// }
 
 fn magnitude(v: &Tuple) -> f32 {
     (v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w).sqrt()

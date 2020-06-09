@@ -303,6 +303,39 @@ impl Matrix4x4 {
         a.r3c3 = z;
         return a;
     }
+
+    fn rotation_x(r: f32) -> Matrix4x4 {
+        let mut a = MATRIX_4X4_IDENTITY;
+        let cos_r = r.cos();
+        let sin_r = r.sin();
+        a.r2c2 = cos_r;
+        a.r2c3 = -sin_r;
+        a.r3c2 = sin_r;
+        a.r3c3 = cos_r;
+        return a;
+    }
+
+    fn rotation_y(r: f32) -> Matrix4x4 {
+        let mut a = MATRIX_4X4_IDENTITY;
+        let cos_r = r.cos();
+        let sin_r = r.sin();
+        a.r1c1 = cos_r;
+        a.r1c3 = sin_r;
+        a.r3c1 = -sin_r;
+        a.r3c3 = cos_r;
+        return a;
+    }
+
+    fn rotation_z(r: f32) -> Matrix4x4 {
+        let mut a = MATRIX_4X4_IDENTITY;
+        let cos_r = r.cos();
+        let sin_r = r.sin();
+        a.r1c1 = cos_r;
+        a.r1c2 = -sin_r;
+        a.r2c1 = sin_r;
+        a.r2c2 = cos_r;
+        return a;
+    }
 }
 
 impl PartialEq for Matrix4x4 {
@@ -681,5 +714,37 @@ fn scaling_test() {
     let inverse = scale.inverse();
     assert_eq!(inverse * v, vector!(-2, 2, 2));
     assert_eq!(inverse * p, point!(-2, 2, 2));
+}
+
+#[test]
+fn rotation_x_test() {
+    let sqrt2div2 = 2_f32.sqrt()/2.0;
+    let p = point!(0,1,0);
+    let half_quarter = Matrix4x4::rotation_x(std::f32::consts::PI / 4.0);
+    let inv_half_quarter = half_quarter.inverse();
+    let full_quarter = Matrix4x4::rotation_x(std::f32::consts::PI / 2.0);
+    assert_eq!(half_quarter * p, point!(0, sqrt2div2, sqrt2div2));
+    assert_eq!(inv_half_quarter * p, point!(0, sqrt2div2, -sqrt2div2));
+    assert_eq!(full_quarter * p, point!(0, 0, 1));
+}
+
+#[test]
+fn rotation_y_test() {
+    let sqrt2div2 = 2_f32.sqrt()/2.0;
+    let p = point!(0,0,1);
+    let half_quarter = Matrix4x4::rotation_y(std::f32::consts::PI / 4.0);
+    let full_quarter = Matrix4x4::rotation_y(std::f32::consts::PI / 2.0);
+    assert_eq!(half_quarter * p, point!(sqrt2div2, 0, sqrt2div2));
+    assert_eq!(full_quarter * p, point!(1, 0, 0));
+}
+
+#[test]
+fn rotation_z_test() {
+    let sqrt2div2 = 2_f32.sqrt()/2.0;
+    let p = point!(0,1,0);
+    let half_quarter = Matrix4x4::rotation_z(std::f32::consts::PI / 4.0);
+    let full_quarter = Matrix4x4::rotation_z(std::f32::consts::PI / 2.0);
+    assert_eq!(half_quarter * p, point!(-sqrt2div2, sqrt2div2, 0));
+    assert_eq!(full_quarter * p, point!(-1, 0, 0));
 }
 
