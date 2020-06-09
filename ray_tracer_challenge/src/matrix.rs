@@ -339,6 +339,16 @@ fn matrix3x3_minor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
     matrix2x2_determinant(&submatrix)
 }
 
+fn matrix3x3_cofactor(m: &Matrix3x3, row: u8, col: u8) -> f32 {
+    let minor = matrix3x3_minor(&m, row, col);
+    if (row + col) % 2 == 0 {
+        return minor;
+    }
+    else {
+        return -minor;
+    }
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -440,7 +450,7 @@ fn matrix2x2_mul_teste() {
 }
 
 #[test]
-fn matrix3x3_mul_teste() {
+fn matrix3x3_mul_test() {
     let a = matrix3x3_create_i(1,3,5,7,9,11,13,15,17);
     let b = matrix3x3_create_i(2,4,6,8,10,12,14,16,18);
     let r = a * b;
@@ -524,8 +534,14 @@ fn matrix4x4_submatrix_test() {
 }
 
 #[test]
-fn matrix3x3_minor_test() {
+fn matrix3x3_minor_cofactor_test() {
     let a = matrix3x3_create_i(3,5,0,2,-1,-7,6,-1,5);
-    let b = matrix3x3_minor(&a, 1, 0);
-    assert_eq!(b, 25.0);
+    let b = matrix3x3_minor(&a, 0, 0);
+    let c = matrix3x3_cofactor(&a, 0, 0);
+    let d = matrix3x3_minor(&a, 1, 0);
+    let e = matrix3x3_cofactor(&a, 1, 0);
+    assert_eq!(b, -12.0);
+    assert_eq!(c, -12.0);
+    assert_eq!(d, 25.0);
+    assert_eq!(e, -25.0);
 }
