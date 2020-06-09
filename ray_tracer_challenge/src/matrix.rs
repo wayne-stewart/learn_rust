@@ -276,6 +276,45 @@ fn matrix2x2_determinant(m: &Matrix2x2) -> f32 {
     m.r1c1 * m.r2c2 - m.r1c2 * m.r2c1
 }
 
+fn matrix3x3_submatrix(m: &Matrix3x3, row: u8, col: u8) -> Matrix2x2 {
+    let arr = [
+            m.r1c1, m.r1c2, m.r1c3,
+            m.r2c1, m.r2c2, m.r2c3,
+            m.r3c1, m.r3c2, m.r3c3];
+    let mut t: [f32; 4] = [0.0; 4];
+    let mut t_index = 0;
+    for y in 0..3 {
+        for x in 0..3 {
+            if y != row && x != col {
+                let m_index = (y * 3 + x) as usize;
+                t[t_index] = arr[m_index];
+                t_index += 1;
+            }
+        }
+    }
+    matrix2x2_create(t[0],t[1],t[2],t[3])
+}
+
+fn matrix4x4_submatrix(m: &Matrix4x4, row: u8, col: u8) -> Matrix3x3 {
+    let arr = [
+            m.r1c1, m.r1c2, m.r1c3, m.r1c4,
+            m.r2c1, m.r2c2, m.r2c3, m.r2c4,
+            m.r3c1, m.r3c2, m.r3c3, m.r3c4,
+            m.r4c1, m.r4c2, m.r4c3, m.r4c4];
+    let mut t: [f32; 9] = [0.0; 9];
+    let mut t_index = 0;
+    for y in 0..4 {
+        for x in 0..4 {
+            if y != row && x != col {
+                let m_index = (y * 4 + x) as usize;
+                t[t_index] = arr[m_index];
+                t_index += 1;
+            }
+        }
+    }
+    matrix3x3_create(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8])
+}
+
 #[test]
 fn matrix2x2_create_test() {
     let a = matrix2x2_create_i(1,2,3,4);
@@ -442,4 +481,20 @@ fn matrix_determinant_test() {
     let a = matrix2x2_create_i(1,5,-3,2);
     let ad = matrix2x2_determinant(&a);
     assert_eq!(ad, 17.0);
+}
+
+#[test]
+fn matrix3x3_submatrix_test() {
+    let a = matrix3x3_create_i(1,2,3,4,5,6,7,8,9);
+    let b = matrix3x3_submatrix(&a, 0, 2);
+    let c = matrix2x2_create_i(4,5,7,8);
+    assert_eq!(b, c);
+}
+
+#[test]
+fn matrix4x4_submatrix_test() {
+    let a = matrix4x4_create_i(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16);
+    let b = matrix4x4_submatrix(&a, 2, 1);
+    let c = matrix3x3_create_i(1,3,4, 5,7,8, 13,15,16);
+    assert_eq!(b, c);
 }
