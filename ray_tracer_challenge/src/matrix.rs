@@ -288,7 +288,7 @@ impl Matrix4x4 {
         Matrix4x4::from_f32(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10],t[11],t[12],t[13],t[14],t[15])
     }
 
-    fn translation(x: f32, y: f32, z: f32) -> Matrix4x4 {
+    pub fn translation(x: f32, y: f32, z: f32) -> Matrix4x4 {
         let mut a = MATRIX_4X4_IDENTITY;
         a.r1c4 = x;
         a.r2c4 = y;
@@ -296,7 +296,7 @@ impl Matrix4x4 {
         return a;
     }
     
-    fn scaling(x: f32, y: f32, z: f32) -> Matrix4x4 {
+    pub fn scaling(x: f32, y: f32, z: f32) -> Matrix4x4 {
         let mut a = MATRIX_4X4_IDENTITY;
         a.r1c1 = x;
         a.r2c2 = y;
@@ -304,7 +304,7 @@ impl Matrix4x4 {
         return a;
     }
 
-    fn rotation_x(r: f32) -> Matrix4x4 {
+    pub fn rotation_x(r: f32) -> Matrix4x4 {
         let mut a = MATRIX_4X4_IDENTITY;
         let cos_r = r.cos();
         let sin_r = r.sin();
@@ -315,7 +315,7 @@ impl Matrix4x4 {
         return a;
     }
 
-    fn rotation_y(r: f32) -> Matrix4x4 {
+    pub fn rotation_y(r: f32) -> Matrix4x4 {
         let mut a = MATRIX_4X4_IDENTITY;
         let cos_r = r.cos();
         let sin_r = r.sin();
@@ -326,7 +326,7 @@ impl Matrix4x4 {
         return a;
     }
 
-    fn rotation_z(r: f32) -> Matrix4x4 {
+    pub fn rotation_z(r: f32) -> Matrix4x4 {
         let mut a = MATRIX_4X4_IDENTITY;
         let cos_r = r.cos();
         let sin_r = r.sin();
@@ -334,6 +334,17 @@ impl Matrix4x4 {
         a.r1c2 = -sin_r;
         a.r2c1 = sin_r;
         a.r2c2 = cos_r;
+        return a;
+    }
+
+    pub fn shearing(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> Matrix4x4 {
+        let mut a = MATRIX_4X4_IDENTITY;
+        a.r1c2 = xy;
+        a.r1c3 = xz;
+        a.r2c1 = yx;
+        a.r2c3 = yz;
+        a.r3c1 = zx;
+        a.r3c2 = zy;
         return a;
     }
 }
@@ -748,3 +759,31 @@ fn rotation_z_test() {
     assert_eq!(full_quarter * p, point!(-1, 0, 0));
 }
 
+#[test]
+fn shearing_test() {
+    let point = point!(2,3,4);
+
+    // move x in proportion to y
+    let transform = Matrix4x4::shearing(1.0,0.0,0.0,0.0,0.0,0.0);
+    assert_eq!(transform * point, point!(5,3,4));
+
+    // move x in proportion to z
+    let transform = Matrix4x4::shearing(0.0,1.0,0.0,0.0,0.0,0.0);
+    assert_eq!(transform * point, point!(6,3,4));
+
+    // move y in proportion to x
+    let transform = Matrix4x4::shearing(0.0,0.0,1.0,0.0,0.0,0.0);
+    assert_eq!(transform * point, point!(2,5,4));
+    
+    // move y in porportion to z
+    let transform = Matrix4x4::shearing(0.0,0.0,0.0,1.0,0.0,0.0);
+    assert_eq!(transform * point, point!(2,7,4));
+
+    // move z in proportion to x
+    let transform = Matrix4x4::shearing(0.0,0.0,0.0,0.0,1.0,0.0);
+    assert_eq!(transform * point, point!(2,3,6));
+    
+    // move z in proportion to y
+    let transform = Matrix4x4::shearing(0.0,0.0,0.0,0.0,0.0,1.0);
+    assert_eq!(transform * point, point!(2,3,7));
+}
