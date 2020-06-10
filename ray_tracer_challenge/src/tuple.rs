@@ -32,6 +32,34 @@ macro_rules! vector {
     ($x:expr, $y:expr, $z:expr ) => { tuple!($x, $y, $z, 0.0) };
 }
 
+impl Tuple {
+    pub fn magnitude(&self) -> f32 {
+        (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
+    }
+    
+    pub fn normalize(&self) -> Tuple {
+        let mag = self.magnitude();
+        tuple!(
+            self.x / mag,
+            self.y / mag,
+            self.z / mag,
+            self.w / mag
+        )
+    }
+    
+    pub fn dot(&self, b: &Tuple) -> f32 {
+        self.x * b.x + self.y * b.y + self.z * b.z + self.w * b.w
+    }
+    
+    pub fn cross(&self, b: &Tuple) -> Tuple {
+        vector!(
+            self.y * b.z - self.z * b.y,
+            self.z * b.x - self.x * b.z,
+            self.x * b.y - self.y * b.x
+        )
+    }
+}
+
 /*
     This allows to use == and != when comparing two tuples
 */
@@ -116,32 +144,6 @@ impl ops::Div<f32> for Tuple {
             w: self.w / rhs
         }
     }
-}
-
-fn magnitude(v: &Tuple) -> f32 {
-    (v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w).sqrt()
-}
-
-fn normalize(v: &Tuple) -> Tuple {
-    let mag = magnitude(&v);
-    tuple!(
-        v.x / mag,
-        v.y / mag,
-        v.z / mag,
-        v.w / mag
-    )
-}
-
-pub fn dot(a: &Tuple, b: &Tuple) -> f32 {
-    a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
-}
-
-fn cross(a: &Tuple, b: &Tuple) -> Tuple {
-    vector!(
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
-    )
 }
 
 #[test]
@@ -229,7 +231,7 @@ fn divide_test() {
 #[test]
 fn magnitude_test() {
     let v = vector!(-1,-2,-3);
-    let t = magnitude(&v);
+    let t = v.magnitude();
     let r = (14.0 as f32).sqrt();
     assert_eq!(r, t);
 }
@@ -237,12 +239,12 @@ fn magnitude_test() {
 #[test]
 fn normalize_test() {
     let v = vector!(4,0,0);
-    let t = normalize(&v);
+    let t = v.normalize();
     let r = vector!(1,0,0);
     assert_eq!(r, t);
 
     let v = vector!(1, 2, 3);
-    let t = normalize(&v);
+    let t = v.normalize();
     let r = vector!(0.26726, 0.53452, 0.80178);
     assert_eq!(r, t);
 }
@@ -251,7 +253,7 @@ fn normalize_test() {
 fn dot_test() {
     let v1 = vector!(1,2,3);
     let v2 = vector!(2,3,4);
-    let t = dot(&v1, &v2);
+    let t = v1.dot(&v2);
     let r = 20.0;
     assert_eq!(r, t);
 }
@@ -260,8 +262,8 @@ fn dot_test() {
 fn cross_test() {
     let v1 = vector!(1,2,3);
     let v2 = vector!(2,3,4);
-    let t = cross(&v1, &v2);
-    let s = cross(&v2, &v1);
+    let t = v1.cross(&v2);
+    let s = v2.cross(&v1);
     let rt = vector!(-1,2,-1);
     let rs = vector!(1,-2,1);
     assert_eq!(rt, t);

@@ -25,7 +25,7 @@ fn main() {
     // canvas::set_pixel(&mut canvas, 4, 2, c3);
     // canvas::set_pixel(&mut canvas, 2, 1, c2);
 
-    let color = color::rgb(1.0,1.0,1.0);
+    let color = color::Color::rgb(1.0,1.0,1.0);
     let p = point!(0,0,0);
     let v = vector!(35,0,0);
     let transform_to_center = matrix::Matrix4x4::translation(50.0, 50.0, 0.0);

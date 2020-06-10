@@ -1,7 +1,6 @@
 
 use crate::tuple;
 use crate::tuple::Tuple;
-use crate::tuple::dot;
 use crate::point;
 use crate::vector;
 
@@ -42,9 +41,9 @@ impl Sphere {
     pub fn intersects(&self, ray: &Ray) -> (bool, f32, f32) {
         // vector from sphere center to ray origin
         let sphere_to_ray = ray.origin - self.center;
-        let a = dot(&ray.direction, &ray.direction);
-        let b = dot(&ray.direction, &sphere_to_ray) * 2.0;
-        let c = dot(&sphere_to_ray, &sphere_to_ray) - 1.0;
+        let a = ray.direction.dot(&ray.direction);
+        let b = ray.direction.dot(&sphere_to_ray) * 2.0;
+        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
         let discriminant = b * b - 4.0 * a * c;
         if discriminant < 0.0 {
             return (false, 0.0, 0.0);

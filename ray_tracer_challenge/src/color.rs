@@ -8,6 +8,16 @@ pub struct Color {
     pub blue: f32
 }
 
+impl Color {
+    pub fn rgb (r:f32, g:f32, b:f32) -> Color {
+        Color {
+            red: r,
+            green: g,
+            blue: b
+        }
+    }
+}
+
 /*
     This allows to use == and != when comparing two tuples
 */
@@ -77,45 +87,37 @@ impl ops::Mul<Color> for Color {
     }
 }
 
-pub fn rgb (r:f32, g:f32, b:f32) -> Color {
-    Color {
-        red: r,
-        green: g,
-        blue: b
-    }
-}
-
 #[test]
 fn add_test() {
-    let a = rgb(0.9,0.6,0.75);
-    let b = rgb(0.7,0.1,0.25);
+    let a = Color::rgb(0.9,0.6,0.75);
+    let b = Color::rgb(0.7,0.1,0.25);
     let c = a + b;
-    let d = rgb(1.6,0.7,1.0);
+    let d = Color::rgb(1.6,0.7,1.0);
     assert_eq!(c,d);
 }
 
 #[test]
 fn subtract_test() {
-    let a = rgb(0.9,0.6,0.75);
-    let b = rgb(0.7,0.1,0.25);
+    let a = Color::rgb(0.9,0.6,0.75);
+    let b = Color::rgb(0.7,0.1,0.25);
     let c = a - b;
-    let d = rgb(0.2,0.5,0.5);
+    let d = Color::rgb(0.2,0.5,0.5);
     assert_eq!(c,d);
 }
 
 #[test]
 fn multiply_scalar_test() {
-    let a = rgb(0.2,0.3,0.4);
+    let a = Color::rgb(0.2,0.3,0.4);
     let b = a * 2.0;
-    let c = rgb(0.4,0.6,0.8);
+    let c = Color::rgb(0.4,0.6,0.8);
     assert_eq!(b,c);
 }
 
 #[test]
 fn mutliply_hadamard_test() {
-    let a = rgb(1.0, 0.2, 0.4);
-    let b = rgb(0.9, 1.0, 0.1);
+    let a = Color::rgb(1.0, 0.2, 0.4);
+    let b = Color::rgb(0.9, 1.0, 0.1);
     let c = a * b;
-    let d = rgb(0.9,0.2,0.04);
+    let d = Color::rgb(0.9,0.2,0.04);
     assert_eq!(c,d);
 }

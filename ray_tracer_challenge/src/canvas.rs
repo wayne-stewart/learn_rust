@@ -1,5 +1,4 @@
 use crate::color::Color;
-use crate::color::rgb;
 
 pub struct Canvas {
     width: u32,
@@ -10,7 +9,7 @@ pub struct Canvas {
 pub fn create_canvas(width: u32, height: u32) -> Canvas {
     let pixel_count: usize = (width * height) as usize;
     let mut pixels = Vec::<Color>::with_capacity(pixel_count);
-    let black = rgb(0.0,0.0,0.0);
+    let black = Color::rgb(0.0,0.0,0.0);
     for _index in 0..pixel_count {
         pixels.push(black);
     }
@@ -102,7 +101,7 @@ pub fn to_ppm(canvas : &Canvas) -> String {
 fn create_canvas_test() {
     let a = create_canvas(10, 20);
     let pixel_count: usize = (a.width * a.height) as usize;
-    let black = rgb(0.0,0.0,0.0);
+    let black = Color::rgb(0.0,0.0,0.0);
     assert_eq!(a.width, 10);
     assert_eq!(a.height, 20);
     for index in 0..pixel_count {
@@ -113,9 +112,9 @@ fn create_canvas_test() {
 #[test]
 fn set_get_pixel_test() {
     let mut canvas = create_canvas(10, 20);
-    let red = rgb(1.0,0.0,0.0);
-    let green = rgb(0.0,1.0,0.0);
-    let blue = rgb(0.0,0.0,1.0);
+    let red = Color::rgb(1.0,0.0,0.0);
+    let green = Color::rgb(0.0,1.0,0.0);
+    let blue = Color::rgb(0.0,0.0,1.0);
     set_pixel(&mut canvas, 0,0,red);
     set_pixel(&mut canvas, 9, 19, green);
     set_pixel(&mut canvas, 0, 19, blue);
