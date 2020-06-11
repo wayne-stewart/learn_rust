@@ -60,7 +60,7 @@ pub fn to_ppm(canvas : &Canvas) -> String {
     v.push('5');
     v.push('\n');
 
-    let max_pixels_in_line = 17;
+    let max_pixels_in_line = 5;
     for y in 0..canvas.height {
         let mut pixels_in_line = 0;
         for x in 0..canvas.width {

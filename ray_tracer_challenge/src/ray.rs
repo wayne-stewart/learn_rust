@@ -38,7 +38,7 @@ pub struct Sphere {
     id: u32,
     center: Point,
     radius: f32,
-    transform: Matrix4x4
+    pub transform: Matrix4x4
 }
 
 impl Sphere {
@@ -79,7 +79,7 @@ pub struct Intersection {
     t: f32
 }
 
-fn hit(xs: Vec<Intersection>) -> Option<f32> {
+pub fn hit(xs: Vec<Intersection>) -> Option<f32> {
     if xs.len() == 0 {
         None
     }
