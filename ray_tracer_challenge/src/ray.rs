@@ -1,17 +1,15 @@
 
-use crate::tuple;
-use crate::tuple::Tuple;
+use crate::tuple::Point;
+use crate::tuple::Vector;
 use crate::point;
 use crate::vector;
 use crate::matrix;
 use crate::matrix::Matrix4x4;
-
-type Point = Tuple;
-type Vector = Tuple;
+use crate::shape::Sphere;
 
 pub struct Ray {
-    origin: Point,
-    direction: Vector
+    pub origin: Point,
+    pub direction: Vector
 }
 
 impl Ray {
@@ -22,7 +20,7 @@ impl Ray {
         }
     }
 
-    pub fn position(&self, t: f32) -> Tuple {
+    pub fn position(&self, t: f32) -> Point {
         self.origin + self.direction * t
     }
 
@@ -34,49 +32,9 @@ impl Ray {
     }
 }
 
-pub struct Sphere {
-    id: u32,
-    center: Point,
-    radius: f32,
-    pub transform: Matrix4x4
-}
-
-impl Sphere {
-    pub fn new(id: u32) -> Sphere {
-        Sphere { 
-            id,
-            center: point!(0,0,0),
-            radius: 1.0,
-            transform: matrix::MATRIX_4X4_IDENTITY
-        }
-    }
-
-    pub fn intersects(&self, ray: &Ray) -> Vec<Intersection> {
-        // transform the ray using the sphere transform before anything
-        let ray = ray.transform(self.transform.inverse());
-        // vector from sphere center to ray origin
-        let sphere_to_ray = ray.origin - self.center;
-        let a = ray.direction.dot(&ray.direction);
-        let b = ray.direction.dot(&sphere_to_ray) * 2.0;
-        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
-        let discriminant = b * b - 4.0 * a * c;
-        if discriminant < 0.0 {
-            return Vec::new();
-        }
-        else {
-            let dsq = discriminant.sqrt();
-            let t1 = (-b - dsq) / (2.0 * a);
-            let t2 = (-b + dsq) / (2.0 * a);
-            vec![
-                Intersection { id: self.id, t: t1 },
-                Intersection { id: self.id, t: t2 }]
-        }
-    }
-}
-
 pub struct Intersection {
-    id: u32,
-    t: f32
+    pub id: u32,
+    pub t: f32
 }
 
 pub fn hit(xs: Vec<Intersection>) -> Option<f32> {
@@ -107,44 +65,6 @@ fn position_test() {
     assert_eq!(ray.position(1.0), point!(3,3,4));
     assert_eq!(ray.position(-1.0), point!(1,3,4));
     assert_eq!(ray.position(2.5), point!(4.5,3,4));
-}
-
-#[test]
-fn ray_sphere_intersects_test() {
-    let sphere = Sphere::new(1);
-
-    // intersect sphere at two points passing through center
-    let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
-    let intersections = sphere.intersects(&ray);
-    assert_eq!(2, intersections.len());
-    assert_eq!(4.0, intersections[0].t);
-    assert_eq!(6.0, intersections[1].t);
-
-    // intersect sphere at a tangent
-    let ray = Ray::new(point!(0,1,-5), vector!(0,0,1));
-    let intersections = sphere.intersects(&ray);
-    assert_eq!(2, intersections.len());
-    assert_eq!(5.0, intersections[0].t);
-    assert_eq!(5.0, intersections[1].t);
-
-    // ray misses the sphere
-    let ray = Ray::new(point!(0,2,-5), vector!(0,0,1));
-    let intersections = sphere.intersects(&ray);
-    assert_eq!(0, intersections.len());
-
-    // ray starts at center of sphere, intersects forward and backward
-    let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
-    let intersections = sphere.intersects(&ray);
-    assert_eq!(2, intersections.len());
-    assert_eq!(-1.0, intersections[0].t);
-    assert_eq!(1.0, intersections[1].t);
-
-    // ray starts in front of sphere, intersects backward
-    let ray = Ray::new(point!(0,0,5), vector!(0,0,1));
-    let intersections = sphere.intersects(&ray);
-    assert_eq!(2, intersections.len());
-    assert_eq!(-6.0, intersections[0].t);
-    assert_eq!(-4.0, intersections[1].t);
 }
 
 #[test]

@@ -10,6 +10,9 @@ pub struct Tuple {
     pub w: f32 // 0 is a vector 1 is a point
 }
 
+pub type Point = Tuple;
+pub type Vector = Tuple;
+
 #[macro_export]
 macro_rules! tuple {
     ($x:expr, $y:expr, $z:expr, $w:expr ) => {
@@ -24,12 +27,26 @@ macro_rules! tuple {
 
 #[macro_export]
 macro_rules! point {
-    ($x:expr, $y:expr, $z:expr ) => { tuple!($x, $y, $z, 1.0) };
+    ($x:expr, $y:expr, $z:expr ) => {
+        Point {
+            x: $x as f32,
+            y: $y as f32,
+            z: $z as f32,
+            w: 1.0
+        }
+    };
 }
 
 #[macro_export]
 macro_rules! vector {
-    ($x:expr, $y:expr, $z:expr ) => { tuple!($x, $y, $z, 0.0) };
+    ($x:expr, $y:expr, $z:expr ) => {
+        Vector {
+            x: $x as f32,
+            y: $y as f32,
+            z: $z as f32,
+            w: 0.0
+        }
+    };
 }
 
 impl Tuple {

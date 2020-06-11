@@ -3,7 +3,9 @@ use crate::math::fequal;
 use crate::tuple::Tuple;
 use crate::tuple;
 use crate::point;
+use crate::tuple::Point;
 use crate::vector;
+use crate::tuple::Vector;
 
 
 // #[repr(C, packed)]
@@ -218,7 +220,7 @@ impl Matrix4x4 {
         )
     }
 
-    fn transpose(&self) -> Matrix4x4 {
+    pub fn transpose(&self) -> Matrix4x4 {
         Matrix4x4::from_f32(
             self.r1c1, self.r2c1, self.r3c1, self.r4c1,
             self.r1c2, self.r2c2, self.r3c2, self.r4c2,
