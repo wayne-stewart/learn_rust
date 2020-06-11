@@ -75,6 +75,10 @@ impl Tuple {
             self.x * b.y - self.y * b.x
         )
     }
+
+    pub fn reflect(&self, normal: &Tuple) -> Tuple {
+        *self - *normal * 2.0 * self.dot(&normal)
+    }
 }
 
 /*
@@ -286,3 +290,23 @@ fn cross_test() {
     assert_eq!(rt, t);
     assert_eq!(rs, s);
 }
+
+#[test]
+fn reflect_test() {
+    // incoming vector at 45 degree angle
+    let v = vector!(1,-1,0);
+    // vertical normal
+    let n = vector!(0,1,0);
+    let r = v.reflect(&n);
+    // reflected vector should mirror v with y reversed
+    assert_eq!(r, vector!(1,1,0));
+
+    // incoming vector coming in straight down
+    let v = vector!(0,-1,0);
+    // 45 degree normal
+    let n = vector!(2_f32.sqrt()/2.0, 2_f32.sqrt()/2.0, 0);
+    let r = v.reflect(&n);
+    // reflected vector should not be horizontal
+    assert_eq!(r, vector!(1,0,0));
+}
+
