@@ -306,7 +306,7 @@ fn reflect_test() {
     // 45 degree normal
     let n = vector!(2_f32.sqrt()/2.0, 2_f32.sqrt()/2.0, 0);
     let r = v.reflect(&n);
-    // reflected vector should not be horizontal
+    // reflected vector should be horizontal
     assert_eq!(r, vector!(1,0,0));
 }
 
