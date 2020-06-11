@@ -18,14 +18,8 @@ http://paulcuth.me.uk/netpbm-viewer/
 
 fn main() {
     let mut canvas = canvas::create_canvas(100, 100);
-    // let c1 = color::rgb(1.5, 0.0, 0.0);
-    // let c2 = color::rgb(0.0, 0.5, 0.0);
-    // let c3 = color::rgb(-0.5, 0.0, 1.0);
-    // canvas::set_pixel(&mut canvas, 0, 0, c1);
-    // canvas::set_pixel(&mut canvas, 4, 2, c3);
-    // canvas::set_pixel(&mut canvas, 2, 1, c2);
-
     let color = color::Color::rgb(1.0,1.0,1.0);
+    
     let p = point!(0,0,0);
     let v = vector!(35,0,0);
     let transform_to_center = matrix::Matrix4x4::translation(50.0, 50.0, 0.0);

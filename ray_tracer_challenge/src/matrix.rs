@@ -272,7 +272,7 @@ impl Matrix4x4 {
         cofactor(minor, row, col)
     }
     
-    fn inverse(&self) -> Matrix4x4 {
+    pub fn inverse(&self) -> Matrix4x4 {
         let determinant = self.determinant();
         if determinant == 0.0 {
             panic!("Attempting to invert and invertible matrix");
@@ -417,7 +417,7 @@ const MATRIX_3X3_IDENTITY : Matrix3x3 = Matrix3x3 {
     r3c1: 0.0, r3c2: 0.0, r3c3: 1.0
 };
 
-const MATRIX_4X4_IDENTITY : Matrix4x4 = Matrix4x4 {
+pub const MATRIX_4X4_IDENTITY : Matrix4x4 = Matrix4x4 {
     r1c1: 1.0, r1c2: 0.0, r1c3: 0.0, r1c4: 0.0,
     r2c1: 0.0, r2c2: 1.0, r2c3: 0.0, r2c4: 0.0,
     r3c1: 0.0, r3c2: 0.0, r3c3: 1.0, r3c4: 0.0,
@@ -513,7 +513,7 @@ fn matrix4x4_create_test() {
 }
 
 #[test]
-fn matrix2x2_mul_teste() {
+fn matrix2x2_mul_test() {
     let a = Matrix2x2::from_i32(1,3,5,7);
     let b = Matrix2x2::from_i32(2,4,6,8);
     let r = a * b;

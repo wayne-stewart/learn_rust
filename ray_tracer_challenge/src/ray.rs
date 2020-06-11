@@ -3,6 +3,8 @@ use crate::tuple;
 use crate::tuple::Tuple;
 use crate::point;
 use crate::vector;
+use crate::matrix;
+use crate::matrix::Matrix4x4;
 
 type Point = Tuple;
 type Vector = Tuple;
@@ -23,12 +25,20 @@ impl Ray {
     pub fn position(&self, t: f32) -> Tuple {
         self.origin + self.direction * t
     }
+
+    pub fn transform(&self, m: Matrix4x4) -> Ray {
+        Ray::new(
+            m * self.origin,
+            m * self.direction
+        )
+    }
 }
 
 pub struct Sphere {
     id: u32,
     center: Point,
-    radius: f32
+    radius: f32,
+    transform: Matrix4x4
 }
 
 impl Sphere {
@@ -36,11 +46,14 @@ impl Sphere {
         Sphere { 
             id,
             center: point!(0,0,0),
-            radius: 1.0
+            radius: 1.0,
+            transform: matrix::MATRIX_4X4_IDENTITY
         }
     }
 
     pub fn intersects(&self, ray: &Ray) -> Vec<Intersection> {
+        // transform the ray using the sphere transform before anything
+        let ray = ray.transform(self.transform.inverse());
         // vector from sphere center to ray origin
         let sphere_to_ray = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
@@ -61,7 +74,7 @@ impl Sphere {
     }
 }
 
-struct Intersection {
+pub struct Intersection {
     id: u32,
     t: f32
 }
@@ -161,4 +174,43 @@ fn hit_test() {
         Intersection { id: 1, t: 2.0 }
     ];
     assert_eq!(2.0, hit(intersections).unwrap());
+}
+
+#[test]
+fn ray_transform_test() {
+    let ray = Ray::new(point!(1,2,3), vector!(0,1,0));
+
+    // translation only affects origin since it is a point
+    // translation does not effect the direction because it is a vector
+    let translation = Matrix4x4::translation(3.0,4.0,5.0);
+    let ray2 = ray.transform(translation);
+    assert_eq!(ray2.origin, point!(4,6,8));
+    assert_eq!(ray2.direction, vector!(0,1,0));
+
+    // scaling affects both origin and direction
+    let transform = Matrix4x4::scaling(2.0,3.0,4.0);
+    let ray3 = ray.transform(transform);
+    assert_eq!(ray3.origin, point!(2,6,12));
+    assert_eq!(ray3.direction, vector!(0,3,0));
+}
+
+#[test]
+fn sphere_transform_test() {
+    let mut sphere = Sphere::new(1);
+    let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
+    
+    // first validate the default transform exists
+    assert_eq!(sphere.transform, matrix::MATRIX_4X4_IDENTITY);
+
+    // test casting a ray affected by scaling
+    sphere.transform = Matrix4x4::scaling(2.0,2.0,2.0);
+    let intersections = sphere.intersects(&ray);
+    assert_eq!(2, intersections.len());
+    assert_eq!(3.0, intersections[0].t);
+    assert_eq!(7.0, intersections[1].t);
+
+    // test casting a ray affected by translation
+    sphere.transform = Matrix4x4::translation(5.0,0.0,0.0);
+    let intersections = sphere.intersects(&ray);
+    assert_eq!(0, intersections.len());
 }
