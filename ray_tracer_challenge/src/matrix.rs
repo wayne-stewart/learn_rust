@@ -3,9 +3,7 @@ use crate::math::fequal;
 use crate::tuple::Tuple;
 use crate::tuple;
 use crate::point;
-use crate::tuple::Point;
 use crate::vector;
-use crate::tuple::Vector;
 
 
 // #[repr(C, packed)]

@@ -1,13 +1,13 @@
 mod math;
+mod macro_def;
 mod tuple;
 mod color;
 mod canvas;
 mod matrix;
 mod ray;
 mod shape;
-
-use crate::tuple::Point;
-use crate::tuple::Vector;
+mod light;
+mod material;
 
 /*
 view ppm files

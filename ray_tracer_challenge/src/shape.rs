@@ -6,11 +6,12 @@ use crate::matrix;
 use crate::matrix::Matrix4x4;
 use crate::ray::Ray;
 use crate::ray::Intersection;
+use crate::material::Material;
 
 
 pub struct Sphere {
     id: u32,
-    //radius: f32,
+    material: Material,
     pub transform: Matrix4x4
 }
 
@@ -18,7 +19,7 @@ impl Sphere {
     pub fn new(id: u32) -> Sphere {
         Sphere { 
             id,
-            //radius: 1.0,
+            material: Material::new(),
             transform: matrix::MATRIX_4X4_IDENTITY
         }
     }

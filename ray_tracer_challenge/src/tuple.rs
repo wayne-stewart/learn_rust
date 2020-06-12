@@ -1,5 +1,8 @@
 use std::ops;
 use crate::math::fequal;
+use crate::tuple;
+use crate::vector;
+use crate::point;
 
 #[derive(Debug, Clone, Copy)]
 //#[derive(PartialEq)]
@@ -12,42 +15,6 @@ pub struct Tuple {
 
 pub type Point = Tuple;
 pub type Vector = Tuple;
-
-#[macro_export]
-macro_rules! tuple {
-    ($x:expr, $y:expr, $z:expr, $w:expr ) => {
-        Tuple {
-            x: $x as f32,
-            y: $y as f32,
-            z: $z as f32,
-            w: $w as f32
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! point {
-    ($x:expr, $y:expr, $z:expr ) => {
-        Point {
-            x: $x as f32,
-            y: $y as f32,
-            z: $z as f32,
-            w: 1.0
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! vector {
-    ($x:expr, $y:expr, $z:expr ) => {
-        Vector {
-            x: $x as f32,
-            y: $y as f32,
-            z: $z as f32,
-            w: 0.0
-        }
-    };
-}
 
 impl Tuple {
     pub fn magnitude(&self) -> f32 {

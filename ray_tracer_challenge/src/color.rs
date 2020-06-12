@@ -1,5 +1,6 @@
 use std::ops;
 use crate::math::fequal;
+use crate::rgb;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
@@ -16,6 +17,8 @@ impl Color {
             blue: b
         }
     }
+
+    pub const BLACK : Color = rgb!(0,0,0);
 }
 
 /*
