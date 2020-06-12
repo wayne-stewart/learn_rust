@@ -17,23 +17,34 @@ http://paulcuth.me.uk/netpbm-viewer/
 */
 
 fn main() {
-    let mut canvas = canvas::create_canvas(100, 100);
+    let dim = 300;
+    let dimf = dim as f32;
+    let mut canvas = canvas::create_canvas(dim, dim);
 
     let mut sphere = shape::Sphere::new(1);
     let black = color::Color::rgb(0.0,0.0,0.0);
     let red = color::Color::rgb(1.0,0.0,0.0);
     let ray_origin = point!(0,0,-5);
-    let scale = matrix::Matrix4x4::scaling(4.0, 2.0, 4.0);
+    let scale = matrix::Matrix4x4::scaling(1.0, 1.0, 1.0);
     sphere.transform = scale;
+    sphere.material.color = rgb!(1, 0.2, 1);
 
-    for y in 0..100 {
-        for x in 0..100 {
-            let cx = ((x as f32) - 50.0) * 0.2;
-            let cy = ((y as f32) - 50.0) * 0.2;
-            let ray = ray::Ray::new(ray_origin, vector!(cx,cy,5));
+    let light = light::Light::point_light(point!(-10, -10, -10), rgb!(1,1,1));
+
+    for y in 0..dim {
+        for x in 0..dim {
+            let cx = ((x as f32) - dimf / 2.0) * 0.007;
+            let cy = ((y as f32) - dimf / 2.0) * 0.007;
+            let ray = ray::Ray::new(ray_origin, vector!(cx,cy,5).normalize());
             match ray::hit(sphere.intersects(&ray)) {
-                None => canvas::set_pixel(&mut canvas, x, y, black),
-                Some(_t) => canvas::set_pixel(&mut canvas, x, y, red)
+                None => canvas::set_pixel(&mut canvas, x, y, &black),
+                Some(t) => {
+                    let hit_point = ray.position(t);
+                    let normal = sphere.normal_at(&hit_point);
+                    let eye = -ray.direction;
+                    let color = light::lighting(&sphere.material, &light, &hit_point, &eye, &normal);
+                    canvas::set_pixel(&mut canvas, x, y, &color);
+                }
             }
         }
     }

@@ -11,7 +11,7 @@ use crate::material::Material;
 
 pub struct Sphere {
     id: u32,
-    material: Material,
+    pub material: Material,
     pub transform: Matrix4x4
 }
 
@@ -46,10 +46,10 @@ impl Sphere {
         }
     }
 
-    pub fn normal_at(&self, world_point: Point) -> Vector {
+    pub fn normal_at(&self, world_point: &Point) -> Vector {
         let inverted_transform = self.transform.inverse();
         let transposed_inverted_transform = inverted_transform.transpose();
-        let object_point = inverted_transform * world_point;
+        let object_point = inverted_transform * (*world_point);
         let object_normal = object_point - point!(0,0,0);
         let mut world_normal = transposed_inverted_transform * object_normal;
         // hack to avoid problems with translations in the transform

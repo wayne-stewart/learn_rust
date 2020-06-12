@@ -20,9 +20,9 @@ pub fn create_canvas(width: u32, height: u32) -> Canvas {
     }
 }
 
-pub fn set_pixel(canvas: &mut Canvas, x: u32, y: u32, color: Color) {
+pub fn set_pixel(canvas: &mut Canvas, x: u32, y: u32, color: &Color) {
     let index = (y * canvas.width + x) as usize;
-    canvas.pixels[index] = color;
+    canvas.pixels[index] = *color;
 }
 
 pub fn get_pixel(canvas: &Canvas, x: u32,  y: u32) -> Color {
