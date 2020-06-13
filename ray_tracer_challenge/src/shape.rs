@@ -10,15 +10,13 @@ use crate::material::Material;
 
 
 pub struct Sphere {
-    pub id: u32,
     pub material: Material,
     pub transform: Matrix4x4
 }
 
 impl Sphere {
-    pub fn new(id: u32) -> Sphere {
-        Sphere { 
-            id,
+    pub fn new() -> Sphere {
+        Sphere {
             material: Material::new(),
             transform: matrix::MATRIX_4X4_IDENTITY
         }
@@ -60,7 +58,7 @@ impl Sphere {
 
 #[test]
 fn ray_sphere_intersects_test() {
-    let sphere = Sphere::new(1);
+    let sphere = Sphere::new();
 
     // intersect sphere at two points passing through center
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
@@ -98,7 +96,7 @@ fn ray_sphere_intersects_test() {
 
 #[test]
 fn sphere_normal_at_origin_test() {
-    let sphere = Sphere::new(1);
+    let sphere = Sphere::new();
     let sqrt3div3 = 3_f32.sqrt()/3.0;
 
     assert_eq!(sphere.normal_at(&point!(1,0,0)), vector!(1,0,0));
@@ -111,7 +109,7 @@ fn sphere_normal_at_origin_test() {
 
 #[test]
 fn sphere_normal_at_transformed_test() {
-    let mut sphere = Sphere::new(1);
+    let mut sphere = Sphere::new();
 
     // translated off origin test
     sphere.transform = Matrix4x4::translation(0.0, 1.0, 0.0);

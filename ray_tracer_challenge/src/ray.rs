@@ -69,7 +69,7 @@ fn position_test() {
 
 #[test]
 fn hit_test() {
-    let sphere = Sphere::new(1);
+    let sphere = Sphere::new();
 
     let intersections = vec![
         Intersection { object: &sphere, t: 1.0 },
@@ -118,7 +118,7 @@ fn ray_transform_test() {
 
 #[test]
 fn sphere_transform_test() {
-    let mut sphere = Sphere::new(1);
+    let mut sphere = Sphere::new();
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
     
     // first validate the default transform exists

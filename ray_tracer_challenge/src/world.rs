@@ -10,40 +10,23 @@ use crate::tuple::Vector;
 use crate::point;
 use crate::vector;
 use crate::rgb;
-use std::collections::HashMap;
 
 pub struct World {
-    objects: HashMap<u32, Sphere>,
-    lights: HashMap<u32, Light>
+    objects: Vec<Sphere>,
+    lights: Vec<Light>
 }
 
 impl World {
     pub fn new() -> World {
         World {
-            objects: HashMap::new(),
-            lights: HashMap::new()
+            objects: Vec::new(),
+            lights: Vec::new()
         }
-    }
-
-    pub fn add_object(&mut self, obj: Sphere) {
-        self.objects.insert(obj.id, obj);
-    }
-
-    pub fn get_object(&self, id: u32) -> Option<&Sphere> {
-        self.objects.get(&id)
-    }
-
-    pub fn add_light(&mut self, light: Light) {
-        self.lights.insert(light.id, light);
-    }
-
-    pub fn get_light(&self, id: u32) -> Option<&Light> {
-        self.lights.get(&id)
     }
 
     pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
         let mut intersections = Vec::<Intersection>::with_capacity(self.objects.len() * 2);
-        for (_key, obj) in self.objects.iter() {
+        for obj in self.objects.iter() {
             let mut obj_intersections = obj.intersects(&ray);
             intersections.append(&mut obj_intersections);
         }
@@ -52,7 +35,7 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &HitComputations) -> Color {
-        let light = self.get_light(1).unwrap();
+        let light = self.lights.first().unwrap();
         lighting(
             &comps.object.material,
             &light,
@@ -66,18 +49,18 @@ impl World {
 fn default_world() -> World {
     let mut world = World::new();
 
-    let light = Light::point_light(1, point!(-10,10,-10), rgb!(1,1,1));
-    world.add_light(light);
+    let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
+    world.lights.push(light);
 
-    let mut sphere1 = Sphere::new(1);
+    let mut sphere1 = Sphere::new();
     sphere1.material.color = rgb!(0.8,1,0.6);
     sphere1.material.diffuse = 0.7;
     sphere1.material.specular = 0.2;
-    world.add_object(sphere1);
+    world.objects.push(sphere1);
 
-    let mut sphere2 = Sphere::new(2);
+    let mut sphere2 = Sphere::new();
     sphere2.transform = Matrix4x4::scaling(0.5,0.5,0.5);
-    world.add_object(sphere2);
+    world.objects.push(sphere2);
 
     return world;
 }
@@ -129,7 +112,7 @@ fn prepare_computations<'a>(ray: &Ray, intersection: &Intersection<'a>) -> HitCo
 #[test]
 fn prepare_computations_test() {
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
-    let sphere = Sphere::new(1);
+    let sphere = Sphere::new();
     let intersection = Intersection { object: &sphere, t: 4.0 };
     let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 4.0);
@@ -142,7 +125,7 @@ fn prepare_computations_test() {
 #[test]
 fn prepare_computations_intersection_inside_sphere_test() {
     let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
-    let sphere = Sphere::new(1);
+    let sphere = Sphere::new();
     let intersection = Intersection { object: &sphere, t: 1.0 };
     let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 1.0);
@@ -158,7 +141,7 @@ fn shade_hit_test() {
     let mut world = default_world();
 
     // shading intersection from the outside
-    let sphere = world.get_object(1).unwrap();
+    let sphere = world.objects.first().unwrap();
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
     let intersection = Intersection { object: &sphere, t: 4.0 };
     let comps = prepare_computations(&ray, &intersection);
@@ -167,9 +150,9 @@ fn shade_hit_test() {
 
     // shading intersection from the inside
     world.lights.clear();
-    world.add_light(Light::point_light(1, point!(0,0.25,0), rgb!(1,1,1)));
+    world.lights.push(Light::point_light(point!(0,0.25,0), rgb!(1,1,1)));
     let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
-    let sphere = world.get_object(2).unwrap();
+    let sphere = world.objects.last().unwrap();
     let intersection = Intersection {object: &sphere, t: 0.5 };
     let comps = prepare_computations(&ray, &intersection);
     let color = world.shade_hit(&comps);
