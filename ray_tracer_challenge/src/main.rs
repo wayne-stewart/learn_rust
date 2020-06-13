@@ -22,8 +22,6 @@ fn main() {
     let mut canvas = canvas::create_canvas(dim, dim);
 
     let mut sphere = shape::Sphere::new(1);
-    let black = color::Color::rgb(0.0,0.0,0.0);
-    let red = color::Color::rgb(1.0,0.0,0.0);
     let ray_origin = point!(0,0,-5);
     let scale = matrix::Matrix4x4::scaling(1.0, 1.0, 1.0);
     sphere.transform = scale;
@@ -35,13 +33,13 @@ fn main() {
         for x in 0..dim {
             let cx = ((x as f32) - dimf / 2.0) * 0.007;
             let cy = ((y as f32) - dimf / 2.0) * 0.007;
-            let ray = ray::Ray::new(ray_origin, vector!(cx,cy,5).normalize());
+            let ray = ray::Ray::new(ray_origin.clone(), vector!(cx,cy,5).normalize());
             match ray::hit(sphere.intersects(&ray)) {
-                None => canvas::set_pixel(&mut canvas, x, y, &black),
+                None => canvas::set_pixel(&mut canvas, x, y, &color::Color::BLACK),
                 Some(t) => {
                     let hit_point = ray.position(t);
                     let normal = sphere.normal_at(&hit_point);
-                    let eye = -ray.direction;
+                    let eye = ray.direction.negate();
                     let color = light::lighting(&sphere.material, &light, &hit_point, &eye, &normal);
                     canvas::set_pixel(&mut canvas, x, y, &color);
                 }

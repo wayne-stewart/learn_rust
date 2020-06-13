@@ -32,7 +32,7 @@ pub fn lighting(
     let effective_color = material.color * light.intensity;
 
     // vector to the light from the position
-    let light_vector = (light.position - (*position)).normalize();
+    let light_vector = light.position.subtract(&position).normalize();
 
     // ambient is applied generally regardless of direct light
     let ambient = effective_color * material.ambient;
@@ -42,8 +42,8 @@ pub fn lighting(
     // on the other side of the surface
     let light_dot_normal = light_vector.dot(&normal);
 
-    let mut diffuse : Color;
-    let mut specular : Color;
+    let diffuse : Color;
+    let specular : Color;
 
     if light_dot_normal < 0.0 {
         diffuse = Color::BLACK;
@@ -54,7 +54,7 @@ pub fn lighting(
 
         // compute the cosine of the angle between the reflection vector
         // and the eye vector, negative means the light reflects away from the eye
-        let reflect = (-light_vector).reflect(&normal);
+        let reflect = light_vector.negate().reflect(&normal);
         let reflect_dot_eye = reflect.dot(&eye);
         if reflect_dot_eye <= 0.0 {
             specular = Color::BLACK;

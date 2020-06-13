@@ -115,9 +115,9 @@ fn set_get_pixel_test() {
     let red = Color::rgb(1.0,0.0,0.0);
     let green = Color::rgb(0.0,1.0,0.0);
     let blue = Color::rgb(0.0,0.0,1.0);
-    set_pixel(&mut canvas, 0,0,red);
-    set_pixel(&mut canvas, 9, 19, green);
-    set_pixel(&mut canvas, 0, 19, blue);
+    set_pixel(&mut canvas, 0,0, &red);
+    set_pixel(&mut canvas, 9, 19, &green);
+    set_pixel(&mut canvas, 0, 19, &blue);
     let r = get_pixel(&canvas, 0,0);
     let g = get_pixel(&canvas, 9, 19);
     let b = get_pixel(&canvas, 0, 19);

@@ -21,13 +21,13 @@ impl Ray {
     }
 
     pub fn position(&self, t: f32) -> Point {
-        self.origin + self.direction * t
+        self.origin.add(&self.direction.multiplyf(t))
     }
 
-    pub fn transform(&self, m: Matrix4x4) -> Ray {
+    pub fn transform(&self, m: &Matrix4x4) -> Ray {
         Ray::new(
-            m * self.origin,
-            m * self.direction
+            m.multiply_tuple(&self.origin),
+            m.multiply_tuple(&self.direction)
         )
     }
 }
@@ -103,13 +103,13 @@ fn ray_transform_test() {
     // translation only affects origin since it is a point
     // translation does not effect the direction because it is a vector
     let translation = Matrix4x4::translation(3.0,4.0,5.0);
-    let ray2 = ray.transform(translation);
+    let ray2 = ray.transform(&translation);
     assert_eq!(ray2.origin, point!(4,6,8));
     assert_eq!(ray2.direction, vector!(0,1,0));
 
     // scaling affects both origin and direction
     let transform = Matrix4x4::scaling(2.0,3.0,4.0);
-    let ray3 = ray.transform(transform);
+    let ray3 = ray.transform(&transform);
     assert_eq!(ray3.origin, point!(2,6,12));
     assert_eq!(ray3.direction, vector!(0,3,0));
 }

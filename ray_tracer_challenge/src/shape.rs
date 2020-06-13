@@ -26,9 +26,9 @@ impl Sphere {
 
     pub fn intersects(&self, ray: &Ray) -> Vec<Intersection> {
         // transform the ray using the sphere transform before anything
-        let ray = ray.transform(self.transform.inverse());
+        let ray = ray.transform(&self.transform.inverse());
         // vector from sphere center to ray origin
-        let sphere_to_ray = ray.origin - point!(0,0,0);
+        let sphere_to_ray = ray.origin.subtract(&point!(0,0,0));
         let a = ray.direction.dot(&ray.direction);
         let b = ray.direction.dot(&sphere_to_ray) * 2.0;
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
@@ -49,9 +49,9 @@ impl Sphere {
     pub fn normal_at(&self, world_point: &Point) -> Vector {
         let inverted_transform = self.transform.inverse();
         let transposed_inverted_transform = inverted_transform.transpose();
-        let object_point = inverted_transform * (*world_point);
-        let object_normal = object_point - point!(0,0,0);
-        let mut world_normal = transposed_inverted_transform * object_normal;
+        let object_point = inverted_transform.multiply_tuple(&world_point);
+        let object_normal = object_point.subtract(&point!(0,0,0));
+        let mut world_normal = transposed_inverted_transform.multiply_tuple(&object_normal);
         // hack to avoid problems with translations in the transform
         world_normal.w = 0.0;
         world_normal.normalize()
@@ -101,10 +101,10 @@ fn sphere_normal_at_origin_test() {
     let sphere = Sphere::new(1);
     let sqrt3div3 = 3_f32.sqrt()/3.0;
 
-    assert_eq!(sphere.normal_at(point!(1,0,0)), vector!(1,0,0));
-    assert_eq!(sphere.normal_at(point!(0,1,0)), vector!(0,1,0));
-    assert_eq!(sphere.normal_at(point!(0,0,1)), vector!(0,0,1));
-    let n = sphere.normal_at(point!(sqrt3div3, sqrt3div3, sqrt3div3));
+    assert_eq!(sphere.normal_at(&point!(1,0,0)), vector!(1,0,0));
+    assert_eq!(sphere.normal_at(&point!(0,1,0)), vector!(0,1,0));
+    assert_eq!(sphere.normal_at(&point!(0,0,1)), vector!(0,0,1));
+    let n = sphere.normal_at(&point!(sqrt3div3, sqrt3div3, sqrt3div3));
     assert_eq!(n, vector!(sqrt3div3,sqrt3div3,sqrt3div3));
     assert_eq!(n, n.normalize());
 }
@@ -115,11 +115,11 @@ fn sphere_normal_at_transformed_test() {
 
     // translated off origin test
     sphere.transform = Matrix4x4::translation(0.0, 1.0, 0.0);
-    let n = sphere.normal_at(point!(0, 1.70711, -0.70711));
+    let n = sphere.normal_at(&point!(0, 1.70711, -0.70711));
     assert_eq!(n, vector!(0, 0.70711, -0.70711));
 
     // scaled (squashed) and rotated test
-    sphere.transform = Matrix4x4::scaling(1.0, 0.5, 1.0) * Matrix4x4::rotation_z(std::f32::consts::PI);
-    let n = sphere.normal_at(point!(0, 2_f32.sqrt()/2.0, -2_f32.sqrt()/2.0));
+    sphere.transform = Matrix4x4::scaling(1.0, 0.5, 1.0).multiply(&Matrix4x4::rotation_z(std::f32::consts::PI));
+    let n = sphere.normal_at(&point!(0, 2_f32.sqrt()/2.0, -2_f32.sqrt()/2.0));
     assert_eq!(n, vector!(0, 0.97014, -0.24254));
 }

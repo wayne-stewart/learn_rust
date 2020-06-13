@@ -1,4 +1,3 @@
-use std::ops;
 use crate::math::fequal;
 use crate::tuple::Tuple;
 use crate::tuple;
@@ -7,7 +6,7 @@ use crate::vector;
 
 
 // #[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct Matrix2x2 {
     r1c1: f32, r1c2: f32,
     r2c1: f32, r2c2: f32
@@ -31,6 +30,15 @@ impl Matrix2x2 {
             c as f32, d as f32) 
     }
 
+    fn multiply(&self, rhs: &Matrix2x2) -> Matrix2x2 {
+        Matrix2x2 {
+            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1,
+            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2,
+            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1,
+            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2
+        }
+    }
+
     fn transpose(&self) -> Matrix2x2 {
         Matrix2x2::from_f32(
             self.r1c1, self.r2c1,
@@ -52,20 +60,8 @@ impl PartialEq for Matrix2x2 {
     }
 }
 
-impl ops::Mul for Matrix2x2 {
-    type Output = Matrix2x2;
-    fn mul(self, rhs: Matrix2x2) -> Matrix2x2 {
-        Matrix2x2 {
-            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1,
-            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2,
-            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1,
-            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2
-        }
-    }
-}
-
 // #[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Matrix3x3 {
     r1c1: f32, r1c2: f32, r1c3: f32,
     r2c1: f32, r2c2: f32, r2c3: f32,
@@ -93,6 +89,20 @@ impl Matrix3x3 {
             d as f32, e as f32, f as f32,
             g as f32, h as f32, i as f32
         )
+    }
+
+    fn multiply(&self, rhs: &Matrix3x3) -> Matrix3x3 {
+        Matrix3x3 {
+            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1 + self.r1c3 * rhs.r3c1,
+            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2 + self.r1c3 * rhs.r3c2,
+            r1c3: self.r1c1 * rhs.r1c3 + self.r1c2 * rhs.r2c3 + self.r1c3 * rhs.r3c3,
+            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1 + self.r2c3 * rhs.r3c1,
+            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2 + self.r2c3 * rhs.r3c2,
+            r2c3: self.r2c1 * rhs.r1c3 + self.r2c2 * rhs.r2c3 + self.r2c3 * rhs.r3c3,
+            r3c1: self.r3c1 * rhs.r1c1 + self.r3c2 * rhs.r2c1 + self.r3c3 * rhs.r3c1,
+            r3c2: self.r3c1 * rhs.r1c2 + self.r3c2 * rhs.r2c2 + self.r3c3 * rhs.r3c2,
+            r3c3: self.r3c1 * rhs.r1c3 + self.r3c2 * rhs.r2c3 + self.r3c3 * rhs.r3c3
+        }
     }
 
     fn transpose(&self) -> Matrix3x3 {
@@ -165,25 +175,8 @@ impl PartialEq for Matrix3x3 {
     }
 }
 
-impl ops::Mul for Matrix3x3 {
-    type Output = Matrix3x3;
-    fn mul(self, rhs: Matrix3x3) -> Matrix3x3 {
-        Matrix3x3 {
-            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1 + self.r1c3 * rhs.r3c1,
-            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2 + self.r1c3 * rhs.r3c2,
-            r1c3: self.r1c1 * rhs.r1c3 + self.r1c2 * rhs.r2c3 + self.r1c3 * rhs.r3c3,
-            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1 + self.r2c3 * rhs.r3c1,
-            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2 + self.r2c3 * rhs.r3c2,
-            r2c3: self.r2c1 * rhs.r1c3 + self.r2c2 * rhs.r2c3 + self.r2c3 * rhs.r3c3,
-            r3c1: self.r3c1 * rhs.r1c1 + self.r3c2 * rhs.r2c1 + self.r3c3 * rhs.r3c1,
-            r3c2: self.r3c1 * rhs.r1c2 + self.r3c2 * rhs.r2c2 + self.r3c3 * rhs.r3c2,
-            r3c3: self.r3c1 * rhs.r1c3 + self.r3c2 * rhs.r2c3 + self.r3c3 * rhs.r3c3
-        }
-    }
-}
-
 // #[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Matrix4x4 {
     r1c1: f32, r1c2: f32, r1c3: f32, r1c4: f32,
     r2c1: f32, r2c2: f32, r2c3: f32, r2c4: f32,
@@ -215,6 +208,36 @@ impl Matrix4x4 {
             e as f32, f as f32, g as f32, h as f32,
             i as f32, j as f32, k as f32, l as f32,
             m as f32, n as f32, o as f32, p as f32
+        )
+    }
+
+    pub fn multiply(&self, rhs: &Matrix4x4) -> Matrix4x4 {
+        Matrix4x4 {
+            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1 + self.r1c3 * rhs.r3c1 + self.r1c4 * rhs.r4c1,
+            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2 + self.r1c3 * rhs.r3c2 + self.r1c4 * rhs.r4c2,
+            r1c3: self.r1c1 * rhs.r1c3 + self.r1c2 * rhs.r2c3 + self.r1c3 * rhs.r3c3 + self.r1c4 * rhs.r4c3,
+            r1c4: self.r1c1 * rhs.r1c4 + self.r1c2 * rhs.r2c4 + self.r1c3 * rhs.r3c4 + self.r1c4 * rhs.r4c4,
+            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1 + self.r2c3 * rhs.r3c1 + self.r2c4 * rhs.r4c1,
+            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2 + self.r2c3 * rhs.r3c2 + self.r2c4 * rhs.r4c2,
+            r2c3: self.r2c1 * rhs.r1c3 + self.r2c2 * rhs.r2c3 + self.r2c3 * rhs.r3c3 + self.r2c4 * rhs.r4c3,
+            r2c4: self.r2c1 * rhs.r1c4 + self.r2c2 * rhs.r2c4 + self.r2c3 * rhs.r3c4 + self.r2c4 * rhs.r4c4,
+            r3c1: self.r3c1 * rhs.r1c1 + self.r3c2 * rhs.r2c1 + self.r3c3 * rhs.r3c1 + self.r3c4 * rhs.r4c1,
+            r3c2: self.r3c1 * rhs.r1c2 + self.r3c2 * rhs.r2c2 + self.r3c3 * rhs.r3c2 + self.r3c4 * rhs.r4c2,
+            r3c3: self.r3c1 * rhs.r1c3 + self.r3c2 * rhs.r2c3 + self.r3c3 * rhs.r3c3 + self.r3c4 * rhs.r4c3,
+            r3c4: self.r3c1 * rhs.r1c4 + self.r3c2 * rhs.r2c4 + self.r3c3 * rhs.r3c4 + self.r3c4 * rhs.r4c4,
+            r4c1: self.r4c1 * rhs.r1c1 + self.r4c2 * rhs.r2c1 + self.r4c3 * rhs.r3c1 + self.r4c4 * rhs.r4c1,
+            r4c2: self.r4c1 * rhs.r1c2 + self.r4c2 * rhs.r2c2 + self.r4c3 * rhs.r3c2 + self.r4c4 * rhs.r4c2,
+            r4c3: self.r4c1 * rhs.r1c3 + self.r4c2 * rhs.r2c3 + self.r4c3 * rhs.r3c3 + self.r4c4 * rhs.r4c3,
+            r4c4: self.r4c1 * rhs.r1c4 + self.r4c2 * rhs.r2c4 + self.r4c3 * rhs.r3c4 + self.r4c4 * rhs.r4c4
+        }
+    }
+
+    pub fn multiply_tuple(&self, rhs: &Tuple) -> Tuple {
+        tuple! (
+            self.r1c1 * rhs.x + self.r1c2 * rhs.y + self.r1c3 * rhs.z + self.r1c4 * rhs.w,
+            self.r2c1 * rhs.x + self.r2c2 * rhs.y + self.r2c3 * rhs.z + self.r2c4 * rhs.w,
+            self.r3c1 * rhs.x + self.r3c2 * rhs.y + self.r3c3 * rhs.z + self.r3c4 * rhs.w,
+            self.r4c1 * rhs.x + self.r4c2 * rhs.y + self.r4c3 * rhs.z + self.r4c4 * rhs.w
         )
     }
 
@@ -370,42 +393,6 @@ impl PartialEq for Matrix4x4 {
     }
 }
 
-impl ops::Mul for Matrix4x4 {
-    type Output = Matrix4x4;
-    fn mul(self, rhs: Matrix4x4) -> Matrix4x4 {
-        Matrix4x4 {
-            r1c1: self.r1c1 * rhs.r1c1 + self.r1c2 * rhs.r2c1 + self.r1c3 * rhs.r3c1 + self.r1c4 * rhs.r4c1,
-            r1c2: self.r1c1 * rhs.r1c2 + self.r1c2 * rhs.r2c2 + self.r1c3 * rhs.r3c2 + self.r1c4 * rhs.r4c2,
-            r1c3: self.r1c1 * rhs.r1c3 + self.r1c2 * rhs.r2c3 + self.r1c3 * rhs.r3c3 + self.r1c4 * rhs.r4c3,
-            r1c4: self.r1c1 * rhs.r1c4 + self.r1c2 * rhs.r2c4 + self.r1c3 * rhs.r3c4 + self.r1c4 * rhs.r4c4,
-            r2c1: self.r2c1 * rhs.r1c1 + self.r2c2 * rhs.r2c1 + self.r2c3 * rhs.r3c1 + self.r2c4 * rhs.r4c1,
-            r2c2: self.r2c1 * rhs.r1c2 + self.r2c2 * rhs.r2c2 + self.r2c3 * rhs.r3c2 + self.r2c4 * rhs.r4c2,
-            r2c3: self.r2c1 * rhs.r1c3 + self.r2c2 * rhs.r2c3 + self.r2c3 * rhs.r3c3 + self.r2c4 * rhs.r4c3,
-            r2c4: self.r2c1 * rhs.r1c4 + self.r2c2 * rhs.r2c4 + self.r2c3 * rhs.r3c4 + self.r2c4 * rhs.r4c4,
-            r3c1: self.r3c1 * rhs.r1c1 + self.r3c2 * rhs.r2c1 + self.r3c3 * rhs.r3c1 + self.r3c4 * rhs.r4c1,
-            r3c2: self.r3c1 * rhs.r1c2 + self.r3c2 * rhs.r2c2 + self.r3c3 * rhs.r3c2 + self.r3c4 * rhs.r4c2,
-            r3c3: self.r3c1 * rhs.r1c3 + self.r3c2 * rhs.r2c3 + self.r3c3 * rhs.r3c3 + self.r3c4 * rhs.r4c3,
-            r3c4: self.r3c1 * rhs.r1c4 + self.r3c2 * rhs.r2c4 + self.r3c3 * rhs.r3c4 + self.r3c4 * rhs.r4c4,
-            r4c1: self.r4c1 * rhs.r1c1 + self.r4c2 * rhs.r2c1 + self.r4c3 * rhs.r3c1 + self.r4c4 * rhs.r4c1,
-            r4c2: self.r4c1 * rhs.r1c2 + self.r4c2 * rhs.r2c2 + self.r4c3 * rhs.r3c2 + self.r4c4 * rhs.r4c2,
-            r4c3: self.r4c1 * rhs.r1c3 + self.r4c2 * rhs.r2c3 + self.r4c3 * rhs.r3c3 + self.r4c4 * rhs.r4c3,
-            r4c4: self.r4c1 * rhs.r1c4 + self.r4c2 * rhs.r2c4 + self.r4c3 * rhs.r3c4 + self.r4c4 * rhs.r4c4
-        }
-    }
-}
-
-impl ops::Mul<Tuple> for Matrix4x4 {
-    type Output = Tuple;
-    fn mul(self, rhs: Tuple) -> Tuple {
-        tuple! (
-            self.r1c1 * rhs.x + self.r1c2 * rhs.y + self.r1c3 * rhs.z + self.r1c4 * rhs.w,
-            self.r2c1 * rhs.x + self.r2c2 * rhs.y + self.r2c3 * rhs.z + self.r2c4 * rhs.w,
-            self.r3c1 * rhs.x + self.r3c2 * rhs.y + self.r3c3 * rhs.z + self.r3c4 * rhs.w,
-            self.r4c1 * rhs.x + self.r4c2 * rhs.y + self.r4c3 * rhs.z + self.r4c4 * rhs.w
-        )
-    }
-}
-
 const MATRIX_2X2_IDENTITY : Matrix2x2 = Matrix2x2 {
     r1c1: 1.0, r1c2: 0.0,
     r2c1: 0.0, r2c2: 1.0
@@ -516,7 +503,7 @@ fn matrix4x4_create_test() {
 fn matrix2x2_mul_test() {
     let a = Matrix2x2::from_i32(1,3,5,7);
     let b = Matrix2x2::from_i32(2,4,6,8);
-    let r = a * b;
+    let r = a.multiply(&b);
     let t = Matrix2x2::from_i32(20,28,52,76);
     assert_eq!(r, t);
 }
@@ -525,7 +512,7 @@ fn matrix2x2_mul_test() {
 fn matrix3x3_mul_test() {
     let a = Matrix3x3::from_i32(1,3,5,7,9,11,13,15,17);
     let b = Matrix3x3::from_i32(2,4,6,8,10,12,14,16,18);
-    let r = a * b;
+    let r = a.multiply(&b);
     let t = Matrix3x3::from_i32(96,114,132,240,294,348,384,474,564);
     assert_eq!(r, t);
 }
@@ -534,7 +521,7 @@ fn matrix3x3_mul_test() {
 fn matrix4x4_mul_test() {
     let a = Matrix4x4::from_i32(1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31);
     let b = Matrix4x4::from_i32(2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32);
-    let r = a * b;
+    let r = a.multiply(&b);
     let t = Matrix4x4::from_i32(304,336,368,400,752,848,944,1040,1200,1360,1520,1680,1648,1872,2096,2320);
     assert_eq!(r, t);
 }
@@ -543,7 +530,7 @@ fn matrix4x4_mul_test() {
 fn matrix4x4_mul_tuple_test() {
     let a = Matrix4x4::from_i32(1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31);
     let b = tuple!(2,4,8,10);
-    let r = a * b;
+    let r = a.multiply_tuple(&b);
     let t = tuple!(124,316,508,700);
     assert_eq!(r, t);
 }
@@ -554,9 +541,9 @@ fn matrix_identity_test() {
     let b = Matrix3x3::from_i32(1,2,3,4,5,6,7,8,9);
     let c = Matrix4x4::from_i32(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 
-    let ar = a * MATRIX_2X2_IDENTITY;
-    let br = b * MATRIX_3X3_IDENTITY;
-    let cr = c * MATRIX_4X4_IDENTITY;
+    let ar = a.multiply(&MATRIX_2X2_IDENTITY);
+    let br = b.multiply(&MATRIX_3X3_IDENTITY);
+    let cr = c.multiply(&MATRIX_4X4_IDENTITY);
 
     assert_eq!(a, ar);
     assert_eq!(b, br);
@@ -686,9 +673,9 @@ fn inverse_test3() {
 fn matrix4x4_multiply_inverse_test() {
     let a = Matrix4x4::from_i32(3,-9,7,3, 3,-8,2,-9, -4,4,4,1, -6,5,-1,1);
     let b = Matrix4x4::from_i32(8,2,2,2, 3,-1,7,0, 7,0,5,4, 6,-2,0,5);
-    let c = a * b;
+    let c = a.multiply(&b);
     let d = b.inverse();
-    let e = c * d;
+    let e = c.multiply(&d);
     assert_eq!(a, e);
 }
 
@@ -699,14 +686,14 @@ fn translate_test() {
 
     // moves point in direction of translation vector
     let translate = Matrix4x4::translation(5.0, -3.0, 2.0);
-    assert_eq!(translate * p, point!(2, 1, 7));
+    assert_eq!(translate.multiply_tuple(&p), point!(2, 1, 7));
 
     // inverting moves point in oposite direction
     let inverse = translate.inverse();
-    assert_eq!(inverse * p, point!(-8, 7, 3));
+    assert_eq!(inverse.multiply_tuple(&p), point!(-8, 7, 3));
 
     // translation matrix does not affect vectors
-    assert_eq!(translate * v, vector!(-3.0, 4.0, 5.0));
+    assert_eq!(translate.multiply_tuple(&v), vector!(-3.0, 4.0, 5.0));
 }
 
 #[test]
@@ -716,15 +703,15 @@ fn scaling_test() {
 
     // scale point by each value in the scale matrix
     let scale = Matrix4x4::scaling(2.0, 3.0, 4.0);
-    assert_eq!(scale * p, point!(-8, 18, 32));
+    assert_eq!(scale.multiply_tuple(&p), point!(-8, 18, 32));
 
     // scaling also applies to vectors
-    assert_eq!(scale * v, vector!(-8, 18, 32));
+    assert_eq!(scale.multiply_tuple(&v), vector!(-8, 18, 32));
 
     // inverse of scaling shrinks by same values
     let inverse = scale.inverse();
-    assert_eq!(inverse * v, vector!(-2, 2, 2));
-    assert_eq!(inverse * p, point!(-2, 2, 2));
+    assert_eq!(inverse.multiply_tuple(&v), vector!(-2, 2, 2));
+    assert_eq!(inverse.multiply_tuple(&p), point!(-2, 2, 2));
 }
 
 #[test]
@@ -734,9 +721,9 @@ fn rotation_x_test() {
     let half_quarter = Matrix4x4::rotation_x(std::f32::consts::PI / 4.0);
     let inv_half_quarter = half_quarter.inverse();
     let full_quarter = Matrix4x4::rotation_x(std::f32::consts::PI / 2.0);
-    assert_eq!(half_quarter * p, point!(0, sqrt2div2, sqrt2div2));
-    assert_eq!(inv_half_quarter * p, point!(0, sqrt2div2, -sqrt2div2));
-    assert_eq!(full_quarter * p, point!(0, 0, 1));
+    assert_eq!(half_quarter.multiply_tuple(&p), point!(0, sqrt2div2, sqrt2div2));
+    assert_eq!(inv_half_quarter.multiply_tuple(&p), point!(0, sqrt2div2, -sqrt2div2));
+    assert_eq!(full_quarter.multiply_tuple(&p), point!(0, 0, 1));
 }
 
 #[test]
@@ -745,8 +732,8 @@ fn rotation_y_test() {
     let p = point!(0,0,1);
     let half_quarter = Matrix4x4::rotation_y(std::f32::consts::PI / 4.0);
     let full_quarter = Matrix4x4::rotation_y(std::f32::consts::PI / 2.0);
-    assert_eq!(half_quarter * p, point!(sqrt2div2, 0, sqrt2div2));
-    assert_eq!(full_quarter * p, point!(1, 0, 0));
+    assert_eq!(half_quarter.multiply_tuple(&p), point!(sqrt2div2, 0, sqrt2div2));
+    assert_eq!(full_quarter.multiply_tuple(&p), point!(1, 0, 0));
 }
 
 #[test]
@@ -755,8 +742,8 @@ fn rotation_z_test() {
     let p = point!(0,1,0);
     let half_quarter = Matrix4x4::rotation_z(std::f32::consts::PI / 4.0);
     let full_quarter = Matrix4x4::rotation_z(std::f32::consts::PI / 2.0);
-    assert_eq!(half_quarter * p, point!(-sqrt2div2, sqrt2div2, 0));
-    assert_eq!(full_quarter * p, point!(-1, 0, 0));
+    assert_eq!(half_quarter.multiply_tuple(&p), point!(-sqrt2div2, sqrt2div2, 0));
+    assert_eq!(full_quarter.multiply_tuple(&p), point!(-1, 0, 0));
 }
 
 #[test]
@@ -765,25 +752,25 @@ fn shearing_test() {
 
     // move x in proportion to y
     let transform = Matrix4x4::shearing(1.0,0.0,0.0,0.0,0.0,0.0);
-    assert_eq!(transform * point, point!(5,3,4));
+    assert_eq!(transform.multiply_tuple(&point), point!(5,3,4));
 
     // move x in proportion to z
     let transform = Matrix4x4::shearing(0.0,1.0,0.0,0.0,0.0,0.0);
-    assert_eq!(transform * point, point!(6,3,4));
+    assert_eq!(transform.multiply_tuple(&point), point!(6,3,4));
 
     // move y in proportion to x
     let transform = Matrix4x4::shearing(0.0,0.0,1.0,0.0,0.0,0.0);
-    assert_eq!(transform * point, point!(2,5,4));
+    assert_eq!(transform.multiply_tuple(&point), point!(2,5,4));
     
     // move y in porportion to z
     let transform = Matrix4x4::shearing(0.0,0.0,0.0,1.0,0.0,0.0);
-    assert_eq!(transform * point, point!(2,7,4));
+    assert_eq!(transform.multiply_tuple(&point), point!(2,7,4));
 
     // move z in proportion to x
     let transform = Matrix4x4::shearing(0.0,0.0,0.0,0.0,1.0,0.0);
-    assert_eq!(transform * point, point!(2,3,6));
+    assert_eq!(transform.multiply_tuple(&point), point!(2,3,6));
     
     // move z in proportion to y
     let transform = Matrix4x4::shearing(0.0,0.0,0.0,0.0,0.0,1.0);
-    assert_eq!(transform * point, point!(2,3,7));
+    assert_eq!(transform.multiply_tuple(&point), point!(2,3,7));
 }

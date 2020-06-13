@@ -1,11 +1,9 @@
-use std::ops;
 use crate::math::fequal;
 use crate::tuple;
 use crate::vector;
 use crate::point;
 
-#[derive(Debug, Clone, Copy)]
-//#[derive(PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Tuple {
     pub x: f32,
     pub y: f32,
@@ -17,6 +15,47 @@ pub type Point = Tuple;
 pub type Vector = Tuple;
 
 impl Tuple {
+
+    pub fn add(&self, rhs: &Tuple) -> Tuple {
+        Tuple {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: self.w + rhs.w
+        }
+    }
+
+    pub fn subtract(&self, rhs: &Tuple) -> Tuple {
+        Tuple {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: self.w - rhs.w
+        }
+    }
+
+    pub fn negate(&self) -> Tuple {
+        ZERO_VECTOR.subtract(&self)
+    }
+    
+    pub fn multiplyf(&self, rhs: f32) -> Tuple {
+        Tuple {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+            w: self.w * rhs
+        }
+    }
+
+    pub fn dividef(&self, rhs: f32) -> Tuple {
+        Tuple {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+            w: self.w / rhs
+        }
+    }
+
     pub fn magnitude(&self) -> f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
     }
@@ -44,7 +83,7 @@ impl Tuple {
     }
 
     pub fn reflect(&self, normal: &Tuple) -> Tuple {
-        *self - *normal * 2.0 * self.dot(&normal)
+        self.subtract(&normal.multiplyf(2.0 * self.dot(&normal)))
     }
 }
 
@@ -62,77 +101,9 @@ impl PartialEq for Tuple {
 }
 
 /*
-    This allows to use + when adding two tuples
-*/
-impl ops::Add for Tuple {
-    type Output = Tuple;
-    fn add(self, rhs: Tuple) -> Tuple {
-        Tuple {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w
-        }
-    }
-}
-
-/*
-    This allows to use - when subtracting two tuples
-*/
-impl ops::Sub for Tuple {
-    type Output = Tuple;
-    fn sub(self, rhs: Tuple) -> Tuple {
-        Tuple {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w
-        }
-    }
-}
-
-/*
     this allows to use - for negation
 */
 const ZERO_VECTOR : Tuple = vector!(0,0,0);
-
-impl ops::Neg for Tuple {
-    type Output = Tuple;
-
-    fn neg(self) -> Tuple {
-        ZERO_VECTOR - self
-    }
-}
-
-/*
-    this allows to use * for multiplication with a scalar
-*/
-impl ops::Mul<f32> for Tuple {
-    type Output = Tuple;
-    fn mul(self, rhs: f32) -> Tuple {
-        Tuple {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs
-        }
-    }
-}
-
-/*
-    this allows to use / for division
-*/
-impl ops::Div<f32> for Tuple {
-    type Output = Tuple;
-    fn div(self, rhs: f32) -> Tuple {
-        Tuple {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs
-        }
-    }
-}
 
 #[test]
 fn point_test() {
@@ -166,7 +137,7 @@ fn vector_test() {
 fn add_test() {
     let p = point!(3, -2, 5);
     let v = vector!(-2, 3, 1);
-    let r = p + v;
+    let r = p.add(&v);
     let t = point!(1, 1, 6);
     assert_eq!(r, t);
 }
@@ -175,19 +146,19 @@ fn add_test() {
 fn subtract_test() {
     let p1 = point!(3, 2, 1);
     let p2 = point!(5, 6, 7);
-    let t = p1 - p2;
+    let t = p1.subtract(&p2);
     let r = vector!(-2, -4, -6);
     assert_eq!(r, t);
 
     let p = point!(3,2,1);
     let v = vector!(5,6,7);
-    let t = p - v;
+    let t = p.subtract(&v);
     let r = point!(-2,-4,-6);
     assert_eq!(r,t);
 
     let v1 = vector!(3,2,1);
     let v2 = vector!(5,6,7);
-    let t = v1 - v2;
+    let t = v1.subtract(&v2);
     let r = vector!(-2,-4,-6);
     assert_eq!(r,t);
 }
@@ -195,7 +166,7 @@ fn subtract_test() {
 #[test]
 fn negation_test() {
     let v = vector!(1, -2, 3);
-    let t = -v;
+    let t = v.negate();
     let r = vector!(-1, 2, -3);
     assert_eq!(r, t);
 }
@@ -203,7 +174,7 @@ fn negation_test() {
 #[test]
 fn multiply_test() {
     let a = tuple!(1, -2, 3, -4);
-    let t = a * 3.5;
+    let t = a.multiplyf(3.5);
     let r = tuple!(3.5, -7.0, 10.5, -14.0);
     assert_eq!(r, t);
 }
@@ -211,7 +182,7 @@ fn multiply_test() {
 #[test]
 fn divide_test() {
     let a = tuple!(1, -2, 3, -4);
-    let t = a / 2.0;
+    let t = a.dividef(2.0);
     let r = tuple!(0.5, -1.0, 1.5, -2.0);
     assert_eq!(r, t);
 }
