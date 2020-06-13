@@ -5,7 +5,7 @@ use crate::vector;
 use crate::matrix;
 use crate::matrix::Matrix4x4;
 use crate::ray::Ray;
-use crate::ray::Intersection;
+use crate::world::Intersection;
 use crate::material::Material;
 
 

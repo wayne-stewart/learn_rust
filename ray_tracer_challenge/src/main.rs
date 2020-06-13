@@ -35,13 +35,13 @@ fn main() {
             let cx = ((x as f32) - dimf / 2.0) * 0.007;
             let cy = ((y as f32) - dimf / 2.0) * 0.007;
             let ray = ray::Ray::new(ray_origin.clone(), vector!(cx,cy,5).normalize());
-            match ray::hit(sphere.intersects(&ray)) {
+            match world::hit(&sphere.intersects(&ray)) {
                 None => canvas::set_pixel(&mut canvas, x, y, &color::Color::BLACK),
-                Some(t) => {
-                    let hit_point = ray.position(t);
-                    let normal = sphere.normal_at(&hit_point);
+                Some(intersection) => {
+                    let hit_point = ray.position(intersection.t);
+                    let normal = intersection.object.normal_at(&hit_point);
                     let eye = ray.direction.negate();
-                    let color = light::lighting(&sphere.material, &light, &hit_point, &eye, &normal);
+                    let color = light::lighting(&intersection.object.material, &light, &hit_point, &eye, &normal);
                     canvas::set_pixel(&mut canvas, x, y, &color);
                 }
             }

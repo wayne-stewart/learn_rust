@@ -32,32 +32,6 @@ impl Ray {
     }
 }
 
-pub struct Intersection<'a> {
-    pub object: &'a Sphere,
-    pub t: f32
-}
-
-pub fn hit(xs: Vec<Intersection>) -> Option<f32> {
-    if xs.len() == 0 {
-        None
-    }
-    else {
-        // try to find the lowest positive value
-        let mut r: f32 = f32::MAX;
-        for x in xs {
-            if x.t >= 0.0 && x.t < r {
-                r = x.t;
-            }
-        }
-        if r == f32::MAX {
-            None
-        }
-        else {
-            Some(r)
-        }
-    }
-}
-
 #[test]
 fn position_test() {
     let ray = Ray::new(point!(2,3,4), vector!(1,0,0));
@@ -65,37 +39,6 @@ fn position_test() {
     assert_eq!(ray.position(1.0), point!(3,3,4));
     assert_eq!(ray.position(-1.0), point!(1,3,4));
     assert_eq!(ray.position(2.5), point!(4.5,3,4));
-}
-
-#[test]
-fn hit_test() {
-    let sphere = Sphere::new();
-
-    let intersections = vec![
-        Intersection { object: &sphere, t: 1.0 },
-        Intersection { object: &sphere, t: 2.0 }
-    ];
-    assert_eq!(1.0, hit(intersections).unwrap());
-
-    let intersections = vec![
-        Intersection { object: &sphere, t: -1.0 },
-        Intersection { object: &sphere, t: 1.0 }
-    ];
-    assert_eq!(1.0, hit(intersections).unwrap());
-
-    let intersections = vec![
-        Intersection { object: &sphere, t: -1.0 },
-        Intersection { object: &sphere, t: -2.0 }
-    ];
-    assert_eq!(None, hit(intersections));
-
-    let intersections = vec![
-        Intersection { object: &sphere, t: 5.0 },
-        Intersection { object: &sphere, t: 7.0 },
-        Intersection { object: &sphere, t: -3.0 },
-        Intersection { object: &sphere, t: 2.0 }
-    ];
-    assert_eq!(2.0, hit(intersections).unwrap());
 }
 
 #[test]

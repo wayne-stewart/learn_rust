@@ -27,7 +27,7 @@ pub fn lighting(
     eyev: &Vector,
     normalv: &Vector) -> Color {
     
-    let effective_color = material.color.multiply(&light.intensity);
+    let effective_color = material.color.hadamard(&light.intensity);
 
     // vector to the light from the position
     let light_vector = light.position.subtract(&point).normalize();

@@ -3,7 +3,6 @@ use crate::light::lighting;
 use crate::shape::Sphere;
 use crate::matrix::Matrix4x4;
 use crate::ray::Ray;
-use crate::ray::Intersection;
 use crate::color::Color;
 use crate::tuple::Point;
 use crate::tuple::Vector;
@@ -24,27 +23,32 @@ impl World {
         }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let mut intersections = Vec::<Intersection>::with_capacity(self.objects.len() * 2);
-        for obj in self.objects.iter() {
-            let mut obj_intersections = obj.intersects(&ray);
-            intersections.append(&mut obj_intersections);
+    pub fn color_at(&self, ray: &Ray) -> Color {
+        let intersections = intersect(&self, &ray);
+        match hit(&intersections) {
+            None => Color::BLACK,
+            Some(intersection) => {
+                let comps = prepare_computations(&ray, &intersection);
+                let color = shade_hit(&self, &comps);
+                return color;
+            }
         }
-        intersections.sort_by(|a,b| a.t.partial_cmp(&b.t).unwrap());
-        return intersections;
-    }
-
-    pub fn shade_hit(&self, comps: &HitComputations) -> Color {
-        let light = self.lights.first().unwrap();
-        lighting(
-            &comps.object.material,
-            &light,
-            &comps.point,
-            &comps.eyev,
-            &comps.normalv)
     }
 }
 
+pub struct HitComputations <'a> {
+    object: &'a Sphere,
+    t: f32,
+    point: Point,
+    eyev: Vector,
+    normalv: Vector,
+    inside: bool
+}
+
+pub struct Intersection<'a> {
+    pub object: &'a Sphere,
+    pub t: f32
+}
 
 fn default_world() -> World {
     let mut world = World::new();
@@ -58,33 +62,12 @@ fn default_world() -> World {
     sphere1.material.specular = 0.2;
     world.objects.push(sphere1);
 
+    // this sphere is inside the first one, scaled down by half
     let mut sphere2 = Sphere::new();
     sphere2.transform = Matrix4x4::scaling(0.5,0.5,0.5);
     world.objects.push(sphere2);
 
     return world;
-}
-
-#[test]
-fn intersect_test() {
-    let world = default_world();
-    let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
-    let xs = world.intersect(&ray);
-    assert_eq!(4, xs.len());
-    assert_eq!(4.0, xs[0].t);
-    assert_eq!(4.5, xs[1].t);
-    assert_eq!(5.5, xs[2].t);
-    assert_eq!(6.0, xs[3].t);
-}
-
-
-pub struct HitComputations <'a> {
-    object: &'a Sphere,
-    t: f32,
-    point: Point,
-    eyev: Vector,
-    normalv: Vector,
-    inside: bool
 }
 
 fn prepare_computations<'a>(ray: &Ray, intersection: &Intersection<'a>) -> HitComputations<'a> {
@@ -107,6 +90,100 @@ fn prepare_computations<'a>(ray: &Ray, intersection: &Intersection<'a>) -> HitCo
         normalv,
         inside
     }
+}
+
+fn intersect<'a>(world: &'a World, ray: &Ray) -> Vec<Intersection<'a>> {
+    let mut intersections = Vec::<Intersection>::with_capacity(world.objects.len() * 2);
+    for obj in world.objects.iter() {
+        let mut obj_intersections = obj.intersects(&ray);
+        intersections.append(&mut obj_intersections);
+    }
+    intersections.sort_by(|a,b| a.t.partial_cmp(&b.t).unwrap());
+    return intersections;
+}
+
+pub fn hit<'a>(xs: &'a Vec<Intersection>) -> Option<&'a Intersection<'a>> {
+    if xs.len() == 0 {
+        None
+    }
+    else {
+        // try to find the lowest positive value
+        let mut result = xs.first();
+        let mut r = f32::MAX;
+        for x in xs {
+            if x.t >= 0.0 && x.t < r {
+                r = x.t;
+                result = Some(&x);
+            }
+        }
+        if r == f32::MAX {
+            None
+        }
+        else {
+            result
+        }
+    }
+}
+
+
+fn shade_hit(world: &World, comps: &HitComputations) -> Color {
+    let mut result: Color = Color::BLACK;
+    for light in world.lights.iter() {
+        let color = lighting(
+            &comps.object.material,
+            &light,
+            &comps.point,
+            &comps.eyev,
+            &comps.normalv);
+        result = result.add(&color);
+    }
+    return result;
+}
+
+#[test]
+fn intersect_test() {
+    let world = default_world();
+    let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
+    let xs = intersect(&world, &ray);
+    assert_eq!(4, xs.len());
+    assert_eq!(4.0, xs[0].t);
+    assert_eq!(4.5, xs[1].t);
+    assert_eq!(5.5, xs[2].t);
+    assert_eq!(6.0, xs[3].t);
+}
+
+#[test]
+fn hit_test() {
+    let sphere = Sphere::new();
+
+    let intersections = vec![
+        Intersection { object: &sphere, t: 1.0 },
+        Intersection { object: &sphere, t: 2.0 }
+    ];
+    assert_eq!(1.0, hit(&intersections).unwrap().t);
+
+    let intersections = vec![
+        Intersection { object: &sphere, t: -1.0 },
+        Intersection { object: &sphere, t: 1.0 }
+    ];
+    assert_eq!(1.0, hit(&intersections).unwrap().t);
+
+    let intersections = vec![
+        Intersection { object: &sphere, t: -1.0 },
+        Intersection { object: &sphere, t: -2.0 }
+    ];
+    match hit(&intersections) {
+        None => { },
+        Some(_) => panic!("hit should have retuned None!")
+    }
+
+    let intersections = vec![
+        Intersection { object: &sphere, t: 5.0 },
+        Intersection { object: &sphere, t: 7.0 },
+        Intersection { object: &sphere, t: -3.0 },
+        Intersection { object: &sphere, t: 2.0 }
+    ];
+    assert_eq!(2.0, hit(&intersections).unwrap().t);
 }
 
 #[test]
@@ -145,7 +222,7 @@ fn shade_hit_test() {
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
     let intersection = Intersection { object: &sphere, t: 4.0 };
     let comps = prepare_computations(&ray, &intersection);
-    let color = world.shade_hit(&comps);
+    let color = shade_hit(&world, &comps);
     assert_eq!(color, rgb!(0.38066, 0.47583, 0.2855));
 
     // shading intersection from the inside
@@ -155,6 +232,27 @@ fn shade_hit_test() {
     let sphere = world.objects.last().unwrap();
     let intersection = Intersection {object: &sphere, t: 0.5 };
     let comps = prepare_computations(&ray, &intersection);
-    let color = world.shade_hit(&comps);
+    let color = shade_hit(&world, &comps);
     assert_eq!(color, rgb!(0.90498, 0.90498, 0.90498));
+}
+
+#[test]
+fn color_at_test() {
+    let mut world = default_world();
+
+    let ray = Ray::new(point!(0,0,-5), vector!(0,1,0));
+    let color = world.color_at(&ray);
+    assert_eq!(color, Color::BLACK);
+
+    let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
+    let color = world.color_at(&ray);
+    assert_eq!(color, rgb!(0.38066, 0.47583, 0.2855));
+
+    let outer = world.objects.first_mut().unwrap();
+    outer.material.ambient = 1.0;
+    let inner = world.objects.last_mut().unwrap();
+    inner.material.ambient = 1.0;
+    let ray = Ray::new(point!(0,0,0.75), vector!(0,0,-1));
+    let color = world.color_at(&ray);
+    assert_eq!(color, world.objects.last().unwrap().material.color);
 }

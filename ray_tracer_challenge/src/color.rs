@@ -43,7 +43,7 @@ impl Color {
         }
     }
 
-    pub fn multiply(&self, rhs: &Color) -> Color {
+    pub fn hadamard(&self, rhs: &Color) -> Color {
         Color {
             red: self.red * rhs.red,
             green: self.green * rhs.green,
@@ -94,7 +94,7 @@ fn multiply_scalar_test() {
 fn mutliply_hadamard_test() {
     let a = Color::rgb(1.0, 0.2, 0.4);
     let b = Color::rgb(0.9, 1.0, 0.1);
-    let c = a.multiply(&b);
+    let c = a.hadamard(&b);
     let d = Color::rgb(0.9,0.2,0.04);
     assert_eq!(c,d);
 }
