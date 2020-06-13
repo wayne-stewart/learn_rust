@@ -104,9 +104,9 @@ pub struct HitComputations <'a> {
     inside: bool
 }
 
-fn prepare_computations<'a>(sphere: &'a Sphere, ray: &Ray, intersection: &Intersection) -> HitComputations<'a> {
+fn prepare_computations<'a>(ray: &Ray, intersection: &Intersection<'a>) -> HitComputations<'a> {
     let point = ray.position(intersection.t);
-    let mut normalv = sphere.normal_at(&point);
+    let mut normalv = intersection.object.normal_at(&point);
     let eyev = ray.direction.negate();
     let inside: bool;
     if normalv.dot(&eyev) < 0.0 {
@@ -117,7 +117,7 @@ fn prepare_computations<'a>(sphere: &'a Sphere, ray: &Ray, intersection: &Inters
         inside = false;
     }
     HitComputations {
-        object: &sphere,
+        object: &intersection.object,
         t: intersection.t,
         point: point.clone(),
         eyev,
@@ -130,8 +130,8 @@ fn prepare_computations<'a>(sphere: &'a Sphere, ray: &Ray, intersection: &Inters
 fn prepare_computations_test() {
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
     let sphere = Sphere::new(1);
-    let intersection = Intersection { id: 1, t: 4.0 };
-    let comps = prepare_computations(&sphere, &ray, &intersection);
+    let intersection = Intersection { object: &sphere, t: 4.0 };
+    let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 4.0);
     assert_eq!(comps.point, point!(0,0,-1));
     assert_eq!(comps.eyev, vector!(0,0,-1));
@@ -143,8 +143,8 @@ fn prepare_computations_test() {
 fn prepare_computations_intersection_inside_sphere_test() {
     let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
     let sphere = Sphere::new(1);
-    let intersection = Intersection { id: 1, t: 1.0 };
-    let comps = prepare_computations(&sphere, &ray, &intersection);
+    let intersection = Intersection { object: &sphere, t: 1.0 };
+    let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 1.0);
     assert_eq!(comps.point, point!(0,0,1));
     assert_eq!(comps.eyev, vector!(0,0,-1));
@@ -160,8 +160,8 @@ fn shade_hit_test() {
     // shading intersection from the outside
     let sphere = world.get_object(1).unwrap();
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
-    let intersection = Intersection { id: 1, t: 4.0 };
-    let comps = prepare_computations(&sphere, &ray, &intersection);
+    let intersection = Intersection { object: &sphere, t: 4.0 };
+    let comps = prepare_computations(&ray, &intersection);
     let color = world.shade_hit(&comps);
     assert_eq!(color, rgb!(0.38066, 0.47583, 0.2855));
 
@@ -170,8 +170,8 @@ fn shade_hit_test() {
     world.add_light(Light::point_light(1, point!(0,0.25,0), rgb!(1,1,1)));
     let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
     let sphere = world.get_object(2).unwrap();
-    let intersection = Intersection {id: 2, t: 0.5 };
-    let comps = prepare_computations(&sphere, &ray, &intersection);
+    let intersection = Intersection {object: &sphere, t: 0.5 };
+    let comps = prepare_computations(&ray, &intersection);
     let color = world.shade_hit(&comps);
     assert_eq!(color, rgb!(0.90498, 0.90498, 0.90498));
 }

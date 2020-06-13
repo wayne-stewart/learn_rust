@@ -32,8 +32,8 @@ impl Ray {
     }
 }
 
-pub struct Intersection {
-    pub id: u32,
+pub struct Intersection<'a> {
+    pub object: &'a Sphere,
     pub t: f32
 }
 
@@ -69,29 +69,31 @@ fn position_test() {
 
 #[test]
 fn hit_test() {
+    let sphere = Sphere::new(1);
+
     let intersections = vec![
-        Intersection { id: 1, t: 1.0 },
-        Intersection { id: 1, t: 2.0 }
+        Intersection { object: &sphere, t: 1.0 },
+        Intersection { object: &sphere, t: 2.0 }
     ];
     assert_eq!(1.0, hit(intersections).unwrap());
 
     let intersections = vec![
-        Intersection { id: 1, t: -1.0 },
-        Intersection { id: 1, t: 1.0 }
+        Intersection { object: &sphere, t: -1.0 },
+        Intersection { object: &sphere, t: 1.0 }
     ];
     assert_eq!(1.0, hit(intersections).unwrap());
 
     let intersections = vec![
-        Intersection { id: 1, t: -1.0 },
-        Intersection { id: 1, t: -2.0 }
+        Intersection { object: &sphere, t: -1.0 },
+        Intersection { object: &sphere, t: -2.0 }
     ];
     assert_eq!(None, hit(intersections));
 
     let intersections = vec![
-        Intersection { id: 1, t: 5.0 },
-        Intersection { id: 1, t: 7.0 },
-        Intersection { id: 1, t: -3.0 },
-        Intersection { id: 1, t: 2.0 }
+        Intersection { object: &sphere, t: 5.0 },
+        Intersection { object: &sphere, t: 7.0 },
+        Intersection { object: &sphere, t: -3.0 },
+        Intersection { object: &sphere, t: 2.0 }
     ];
     assert_eq!(2.0, hit(intersections).unwrap());
 }

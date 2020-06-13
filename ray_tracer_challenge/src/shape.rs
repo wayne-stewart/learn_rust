@@ -41,8 +41,8 @@ impl Sphere {
             let t1 = (-b - dsq) / (2.0 * a);
             let t2 = (-b + dsq) / (2.0 * a);
             vec![
-                Intersection { id: self.id, t: t1 },
-                Intersection { id: self.id, t: t2 }]
+                Intersection { object: &self, t: t1 },
+                Intersection { object: &self, t: t2 }]
         }
     }
 
