@@ -22,19 +22,17 @@ impl Light {
     }
 }
 
-
-
 pub fn lighting(
     material: &Material,
     light: &Light,
-    position: &Point,
-    eye: &Vector,
-    normal: &Vector) -> Color {
+    point: &Point,
+    eyev: &Vector,
+    normalv: &Vector) -> Color {
     
     let effective_color = material.color.multiply(&light.intensity);
 
     // vector to the light from the position
-    let light_vector = light.position.subtract(&position).normalize();
+    let light_vector = light.position.subtract(&point).normalize();
 
     // ambient is applied generally regardless of direct light
     let ambient = effective_color.multiplyf(material.ambient);
@@ -42,7 +40,7 @@ pub fn lighting(
     // light_dot_normal represents the cosine of the angle
     // between the two vectors, negative means the light is
     // on the other side of the surface
-    let light_dot_normal = light_vector.dot(&normal);
+    let light_dot_normal = light_vector.dot(&normalv);
 
     let diffuse : Color;
     let specular : Color;
@@ -56,8 +54,8 @@ pub fn lighting(
 
         // compute the cosine of the angle between the reflection vector
         // and the eye vector, negative means the light reflects away from the eye
-        let reflect = light_vector.negate().reflect(&normal);
-        let reflect_dot_eye = reflect.dot(&eye);
+        let reflect = light_vector.negate().reflect(&normalv);
+        let reflect_dot_eye = reflect.dot(&eyev);
         if reflect_dot_eye <= 0.0 {
             specular = Color::BLACK;
         }

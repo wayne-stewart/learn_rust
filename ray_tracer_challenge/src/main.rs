@@ -51,3 +51,4 @@ fn main() {
     let s = canvas::to_ppm(&canvas);
     std::fs::write("test.ppm", s).expect("unable to write file");
 }
+
