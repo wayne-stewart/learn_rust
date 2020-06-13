@@ -1,4 +1,3 @@
-use std::ops;
 use crate::math::fequal;
 use crate::rgb;
 

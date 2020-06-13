@@ -8,6 +8,7 @@ mod ray;
 mod shape;
 mod light;
 mod material;
+mod world;
 
 /*
 view ppm files
@@ -27,7 +28,7 @@ fn main() {
     sphere.transform = scale;
     sphere.material.color = rgb!(1, 0.2, 0.5);
 
-    let light = light::Light::point_light(point!(-10, -10, -10), rgb!(1,1,1));
+    let light = light::Light::point_light(1, point!(-10, -10, -10), rgb!(1,1,1));
 
     for y in 0..dim {
         for x in 0..dim {

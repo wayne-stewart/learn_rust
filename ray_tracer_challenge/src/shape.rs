@@ -10,7 +10,7 @@ use crate::material::Material;
 
 
 pub struct Sphere {
-    id: u32,
+    pub id: u32,
     pub material: Material,
     pub transform: Matrix4x4
 }
