@@ -11,7 +11,7 @@ pub fn create_canvas(width: u32, height: u32) -> Canvas {
     let mut pixels = Vec::<Color>::with_capacity(pixel_count);
     let black = Color::rgb(0.0,0.0,0.0);
     for _index in 0..pixel_count {
-        pixels.push(black);
+        pixels.push(black.clone());
     }
     Canvas {
         width,
@@ -22,12 +22,12 @@ pub fn create_canvas(width: u32, height: u32) -> Canvas {
 
 pub fn set_pixel(canvas: &mut Canvas, x: u32, y: u32, color: &Color) {
     let index = (y * canvas.width + x) as usize;
-    canvas.pixels[index] = *color;
+    canvas.pixels[index] = color.clone();
 }
 
 pub fn get_pixel(canvas: &Canvas, x: u32,  y: u32) -> Color {
     let index = (y * canvas.width + x) as usize;
-    canvas.pixels[index]
+    canvas.pixels[index].clone()
 }
 
 fn clamp_255(v: f32) -> i32 {
@@ -73,7 +73,7 @@ pub fn to_ppm(canvas : &Canvas) -> String {
             }
             pixels_in_line += 1;
             let index = (y * canvas.width + x) as usize;
-            let c = canvas.pixels[index];
+            let c = &canvas.pixels[index];
             let r = clamp_255(c.red);
             let g = clamp_255(c.green);
             let b = clamp_255(c.blue);

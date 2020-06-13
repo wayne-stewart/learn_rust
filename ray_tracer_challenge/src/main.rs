@@ -25,7 +25,7 @@ fn main() {
     let ray_origin = point!(0,0,-5);
     let scale = matrix::Matrix4x4::scaling(1.0, 1.0, 1.0);
     sphere.transform = scale;
-    sphere.material.color = rgb!(1, 0.2, 1);
+    sphere.material.color = rgb!(1, 0.2, 0.5);
 
     let light = light::Light::point_light(point!(-10, -10, -10), rgb!(1,1,1));
 
