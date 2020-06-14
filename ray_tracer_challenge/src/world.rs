@@ -11,8 +11,8 @@ use crate::vector;
 use crate::rgb;
 
 pub struct World {
-    objects: Vec<Sphere>,
-    lights: Vec<Light>
+    pub objects: Vec<Sphere>,
+    pub lights: Vec<Light>
 }
 
 impl World {

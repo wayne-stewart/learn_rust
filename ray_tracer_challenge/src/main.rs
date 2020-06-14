@@ -9,6 +9,14 @@ mod shape;
 mod light;
 mod material;
 mod world;
+mod camera;
+
+use camera::Camera;
+use world::World;
+use canvas::Canvas;
+use light::Light;
+use shape::Sphere;
+use matrix::Matrix4x4;
 
 /*
 view ppm files
@@ -18,37 +26,49 @@ http://paulcuth.me.uk/netpbm-viewer/
 */
 
 fn main() {
-    let dim = 300;
-    let dimf = dim as f32;
-    let mut canvas = canvas::create_canvas(dim, dim);
+    let dimx = 500;
+    let dimy = 250;
+    let mut canvas = Canvas::new(dimx, dimy);
+    let mut camera = Camera::new(dimx, dimy, std::f32::consts::PI / 3.0);
+    camera.transform = Matrix4x4::view_transform(&point!(0,1.5,-5), &point!(0,1,0), &point!(0,1,0));
 
-    let mut sphere = shape::Sphere::new();
-    let ray_origin = point!(0,0,-5);
-    let scale = matrix::Matrix4x4::scaling(1.0, 1.0, 1.0);
-    sphere.transform = scale;
-    sphere.material.color = rgb!(1, 0.2, 0.5);
+    let world = create_world();
 
-    let light = light::Light::point_light(point!(-10, -10, -10), rgb!(1,1,1));
-
-    for y in 0..dim {
-        for x in 0..dim {
-            let cx = ((x as f32) - dimf / 2.0) * 0.007;
-            let cy = ((y as f32) - dimf / 2.0) * 0.007;
-            let ray = ray::Ray::new(ray_origin.clone(), vector!(cx,cy,5).normalize());
-            match world::hit(&sphere.intersects(&ray)) {
-                None => canvas::set_pixel(&mut canvas, x, y, &color::Color::BLACK),
-                Some(intersection) => {
-                    let hit_point = ray.position(intersection.t);
-                    let normal = intersection.object.normal_at(&hit_point);
-                    let eye = ray.direction.negate();
-                    let color = light::lighting(&intersection.object.material, &light, &hit_point, &eye, &normal);
-                    canvas::set_pixel(&mut canvas, x, y, &color);
-                }
-            }
-        }
-    }
+    render(&camera, &world, &mut canvas);
 
     let s = canvas::to_ppm(&canvas);
     std::fs::write("test.ppm", s).expect("unable to write file");
 }
 
+fn create_world() -> World {
+    let mut world = World::new();
+
+    let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
+    world.lights.push(light);
+
+    let mut sphere = Sphere::new();
+    sphere.transform = Matrix4x4::translation(-0.5, 1.0, 0.5);
+    sphere.material.color = rgb!(0.1,1,0.5);
+    sphere.material.diffuse = 0.7;
+    sphere.material.specular = 0.3;
+    world.objects.push(sphere);
+
+    let mut sphere = Sphere::new();
+    sphere.transform = Matrix4x4::translation(1.5, 0.5, -0.5).multiply(&Matrix4x4::scaling(0.5,0.5,0.5));
+    sphere.material.color = rgb!(0.5,1,0.1);
+    sphere.material.diffuse = 0.7;
+    sphere.material.specular = 0.3;
+    world.objects.push(sphere);
+
+    return world;
+}
+
+fn render(camera: &Camera, world: &World, canvas: &mut Canvas) {
+    for y in 0..camera.vsize {
+        for x in 0..camera.hsize {
+            let ray = camera.ray_for_pixel(x, y);
+            let color = world.color_at(&ray);
+            canvas.set_pixel(x, y, &color);
+        }
+    }
+}

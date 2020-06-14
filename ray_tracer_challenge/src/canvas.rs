@@ -6,29 +6,33 @@ pub struct Canvas {
     pixels: Vec<Color>
 }
 
-pub fn create_canvas(width: u32, height: u32) -> Canvas {
-    let pixel_count: usize = (width * height) as usize;
-    let mut pixels = Vec::<Color>::with_capacity(pixel_count);
-    let black = Color::rgb(0.0,0.0,0.0);
-    for _index in 0..pixel_count {
-        pixels.push(black.clone());
+impl Canvas {
+    pub fn new(width: u32, height: u32) -> Canvas {
+        let pixel_count: usize = (width * height) as usize;
+        let mut pixels = Vec::<Color>::with_capacity(pixel_count);
+        let black = Color::rgb(0.0,0.0,0.0);
+        for _index in 0..pixel_count {
+            pixels.push(black.clone());
+        }
+        Canvas {
+            width,
+            height,
+            pixels
+        }
     }
-    Canvas {
-        width,
-        height,
-        pixels
+
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: &Color) {
+        let index = (y * self.width + x) as usize;
+        self.pixels[index] = color.clone();
+    }
+    
+    pub fn get_pixel(&mut self, x: u32,  y: u32) -> Color {
+        let index = (y * self.width + x) as usize;
+        self.pixels[index].clone()
     }
 }
 
-pub fn set_pixel(canvas: &mut Canvas, x: u32, y: u32, color: &Color) {
-    let index = (y * canvas.width + x) as usize;
-    canvas.pixels[index] = color.clone();
-}
 
-pub fn get_pixel(canvas: &Canvas, x: u32,  y: u32) -> Color {
-    let index = (y * canvas.width + x) as usize;
-    canvas.pixels[index].clone()
-}
 
 fn clamp_255(v: f32) -> i32 {
     let mut a: i32 = (255.0 * v) as i32;
