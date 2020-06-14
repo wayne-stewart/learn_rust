@@ -7,8 +7,8 @@ use crate::vector;
 use crate::rgb;
 
 pub struct Light {
-    position: Point,
-    intensity: Color
+    pub position: Point,
+    pub intensity: Color
 }
 
 impl Light {
@@ -25,7 +25,8 @@ pub fn lighting(
     light: &Light,
     point: &Point,
     eyev: &Vector,
-    normalv: &Vector) -> Color {
+    normalv: &Vector,
+    in_shadow: bool) -> Color {
     
     let effective_color = material.color.hadamard(&light.intensity);
 
@@ -43,7 +44,7 @@ pub fn lighting(
     let diffuse : Color;
     let specular : Color;
 
-    if light_dot_normal < 0.0 {
+    if in_shadow || light_dot_normal < 0.0 {
         diffuse = Color::BLACK;
         specular = Color::BLACK;
     }
@@ -72,7 +73,8 @@ fn lighting_test_eye_between_light_and_surface() {
     let eye = vector!(0,0,-1);
     let normal = vector!(0,0,-1);
     let light = Light::point_light(point!(0,0,-10), rgb!(1,1,1));
-    let result = lighting(&material, &light, &position, &eye, &normal);
+    let in_shadow = false;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
     assert_eq!(result, rgb!(1.9,1.9,1.9));
 }
 
@@ -83,7 +85,8 @@ fn lighting_test_eye_offset_between_light_and_surface() {
     let eye = vector!(0, 2_f32.sqrt()/2.0, -2_f32.sqrt()/2.0);
     let normal = vector!(0,0,-1);
     let light = Light::point_light(point!(0,0,-10), rgb!(1,1,1));
-    let result = lighting(&material, &light, &position, &eye, &normal);
+    let in_shadow = false;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
     assert_eq!(result, rgb!(1,1,1));
 }
 
@@ -94,7 +97,8 @@ fn lighting_test_eye_offset_between_light_and_surface() {
      let eye = vector!(0,0,-1);
      let normal = vector!(0,0,-1);
      let light = Light::point_light(point!(0,10,-10), rgb!(1,1,1));
-     let result = lighting(&material, &light, &position, &eye, &normal);
+    let in_shadow = false;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
      assert_eq!(result, rgb!(0.7364, 0.7364, 0.7364));
  }
 
@@ -105,7 +109,8 @@ fn lighting_test_eye_offset_between_light_and_surface() {
      let eye = vector!(0, -2_f32.sqrt()/2.0, -2_f32.sqrt()/2.0);
      let normal = vector!(0,0,-1);
      let light = Light::point_light(point!(0,10,-10), rgb!(1,1,1));
-     let result = lighting(&material, &light, &position, &eye, &normal);
+    let in_shadow = false;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
      assert_eq!(result, rgb!(1.6364, 1.6364, 1.6364));
  }
 
@@ -116,6 +121,19 @@ fn lighting_test_eye_offset_between_light_and_surface() {
      let eye = vector!(0,0,-1);
      let normal = vector!(0,0,-1);
      let light = Light::point_light(point!(0,0,10), rgb!(1,1,1));
-     let result = lighting(&material, &light, &position, &eye, &normal);
+    let in_shadow = false;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
      assert_eq!(result, rgb!(0.1,0.1,0.1));
+ }
+
+ #[test]
+ fn lighting_test_with_surface_in_shadow() {
+    let material = Material::new();
+    let position = point!(0,0,0);
+    let eye = vector!(0,0,-1);
+    let normal = vector!(0,0,-1);
+    let light = Light::point_light(point!(0,0,-10), rgb!(1,1,1));
+    let in_shadow = true;
+    let result = lighting(&material, &light, &position, &eye, &normal, in_shadow);
+    assert_eq!(result, rgb!(0.1,0.1,0.1));
  }

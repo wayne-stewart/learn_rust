@@ -15,7 +15,7 @@ use camera::Camera;
 use world::World;
 use canvas::Canvas;
 use light::Light;
-use shape::Sphere;
+use shape::Shape;
 use matrix::Matrix4x4;
 
 /*
@@ -46,14 +46,14 @@ fn create_world() -> World {
     let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
     world.lights.push(light);
 
-    let mut sphere = Sphere::new();
+    let mut sphere = Shape::sphere();
     sphere.transform = Matrix4x4::translation(-0.5, 1.0, 0.5);
-    sphere.material.color = rgb!(0.1,1,0.5);
+    sphere.material.color = rgb!(0.1,0.1,1);
     sphere.material.diffuse = 0.7;
     sphere.material.specular = 0.3;
     world.objects.push(sphere);
 
-    let mut sphere = Sphere::new();
+    let mut sphere = Shape::sphere();
     sphere.transform = Matrix4x4::translation(1.5, 0.5, -0.5).multiply(&Matrix4x4::scaling(0.5,0.5,0.5));
     sphere.material.color = rgb!(0.5,1,0.1);
     sphere.material.diffuse = 0.7;

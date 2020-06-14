@@ -1,6 +1,6 @@
 use crate::light::Light;
 use crate::light::lighting;
-use crate::shape::Sphere;
+use crate::shape::Shape;
 use crate::matrix::Matrix4x4;
 use crate::ray::Ray;
 use crate::color::Color;
@@ -9,9 +9,10 @@ use crate::tuple::Vector;
 use crate::point;
 use crate::vector;
 use crate::rgb;
+use crate::math;
 
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Shape>,
     pub lights: Vec<Light>
 }
 
@@ -37,16 +38,17 @@ impl World {
 }
 
 struct HitComputations <'a> {
-    object: &'a Sphere,
+    object: &'a Shape,
     t: f32,
     point: Point,
+    over_point: Point,
     eyev: Vector,
     normalv: Vector,
     inside: bool
 }
 
 pub struct Intersection<'a> {
-    pub object: &'a Sphere,
+    pub object: &'a Shape,
     pub t: f32
 }
 
@@ -56,14 +58,14 @@ fn default_world() -> World {
     let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
     world.lights.push(light);
 
-    let mut sphere1 = Sphere::new();
+    let mut sphere1 = Shape::sphere();
     sphere1.material.color = rgb!(0.8,1,0.6);
     sphere1.material.diffuse = 0.7;
     sphere1.material.specular = 0.2;
     world.objects.push(sphere1);
 
     // this sphere is inside the first one, scaled down by half
-    let mut sphere2 = Sphere::new();
+    let mut sphere2 = Shape::sphere();
     sphere2.transform = Matrix4x4::scaling(0.5,0.5,0.5);
     world.objects.push(sphere2);
 
@@ -86,13 +88,14 @@ fn prepare_computations<'a>(ray: &Ray, intersection: &Intersection<'a>) -> HitCo
         object: &intersection.object,
         t: intersection.t,
         point: point.clone(),
+        over_point: point.add(&normalv.multiplyf(math::EPSILON)),
         eyev,
         normalv,
         inside
     }
 }
 
-fn intersect<'a>(world: &'a World, ray: &Ray) -> Vec<Intersection<'a>> {
+fn intersect<'a>(world: &'a World, ray: &'a Ray) -> Vec<Intersection<'a>> {
     let mut intersections = Vec::<Intersection>::with_capacity(world.objects.len() * 2);
     for obj in world.objects.iter() {
         let mut obj_intersections = obj.intersects(&ray);
@@ -129,15 +132,37 @@ pub fn hit<'a>(xs: &'a Vec<Intersection>) -> Option<&'a Intersection<'a>> {
 fn shade_hit(world: &World, comps: &HitComputations) -> Color {
     let mut result: Color = Color::BLACK;
     for light in world.lights.iter() {
+        let in_shadow = is_shadowed(&world, &comps.over_point, &light);
         let color = lighting(
             &comps.object.material,
             &light,
             &comps.point,
             &comps.eyev,
-            &comps.normalv);
+            &comps.normalv,
+            in_shadow);
         result = result.add(&color);
     }
     return result;
+}
+
+fn is_shadowed(world: &World, point: &Point, light: &Light) -> bool {
+    let v = light.position.subtract(&point);
+    let distance = v.magnitude();
+    let direction = v.normalize();
+    let ray = Ray::new(point.clone(), direction);
+    let intersections = intersect(&world, &ray);
+    match hit(&intersections) {
+        None => false,
+        Some(h) => {
+            if h.t < distance {
+                true
+            }
+            else {
+                false
+            }
+        }
+    }
+    
 }
 
 #[test]
@@ -154,7 +179,7 @@ fn intersect_test() {
 
 #[test]
 fn hit_test() {
-    let sphere = Sphere::new();
+    let sphere = Shape::sphere();
 
     let intersections = vec![
         Intersection { object: &sphere, t: 1.0 },
@@ -189,7 +214,7 @@ fn hit_test() {
 #[test]
 fn prepare_computations_test() {
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
-    let sphere = Sphere::new();
+    let sphere = Shape::sphere();
     let intersection = Intersection { object: &sphere, t: 4.0 };
     let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 4.0);
@@ -202,7 +227,7 @@ fn prepare_computations_test() {
 #[test]
 fn prepare_computations_intersection_inside_sphere_test() {
     let ray = Ray::new(point!(0,0,0), vector!(0,0,1));
-    let sphere = Sphere::new();
+    let sphere = Shape::sphere();
     let intersection = Intersection { object: &sphere, t: 1.0 };
     let comps = prepare_computations(&ray, &intersection);
     assert_eq!(comps.t, 1.0);
@@ -255,4 +280,26 @@ fn color_at_test() {
     let ray = Ray::new(point!(0,0,0.75), vector!(0,0,-1));
     let color = world.color_at(&ray);
     assert_eq!(color, world.objects.last().unwrap().material.color);
+}
+
+#[test]
+fn is_shadowed_test() {
+    let w = default_world();
+    let light = w.lights.first().unwrap();
+
+    let p = point!(0,10,0);
+    let in_shadow = is_shadowed(&w, &p, &light);
+    assert_eq!(false, in_shadow);
+
+    let p = point!(10,-10,10);
+    let in_shadow = is_shadowed(&w, &p, &light);
+    assert_eq!(true, in_shadow);
+
+    let p = point!(-20,20,-20);
+    let in_shadow = is_shadowed(&w, &p, &light);
+    assert_eq!(false, in_shadow);
+
+    let p = point!(-2,2,-2);
+    let in_shadow = is_shadowed(&w, &p, &light);
+    assert_eq!(false, in_shadow);
 }

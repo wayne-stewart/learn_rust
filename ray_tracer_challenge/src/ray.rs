@@ -5,7 +5,7 @@ use crate::point;
 use crate::vector;
 use crate::matrix;
 use crate::matrix::Matrix4x4;
-use crate::shape::Sphere;
+use crate::shape::Shape;
 
 pub struct Ray {
     pub origin: Point,
@@ -61,7 +61,7 @@ fn ray_transform_test() {
 
 #[test]
 fn sphere_transform_test() {
-    let mut sphere = Sphere::new();
+    let mut sphere = Shape::sphere();
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
     
     // first validate the default transform exists

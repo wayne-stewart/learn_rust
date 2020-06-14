@@ -8,57 +8,78 @@ use crate::ray::Ray;
 use crate::world::Intersection;
 use crate::material::Material;
 
+enum ShapeType {
+    Sphere,
+    Plane
+}
 
-pub struct Sphere {
+pub struct Shape {
+    shape_type: ShapeType,
     pub material: Material,
     pub transform: Matrix4x4
 }
 
-impl Sphere {
-    pub fn new() -> Sphere {
-        Sphere {
+impl Shape {
+    pub fn sphere() -> Shape {
+        Shape {
+            shape_type: ShapeType::Sphere,
             material: Material::new(),
             transform: matrix::MATRIX_4X4_IDENTITY
         }
     }
 
-    pub fn intersects(&self, ray: &Ray) -> Vec<Intersection> {
-        // transform the ray using the sphere transform before anything
-        let ray = ray.transform(&self.transform.inverse());
-        // vector from sphere center to ray origin
-        let sphere_to_ray = ray.origin.subtract(&point!(0,0,0));
-        let a = ray.direction.dot(&ray.direction);
-        let b = ray.direction.dot(&sphere_to_ray) * 2.0;
-        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
-        let discriminant = b * b - 4.0 * a * c;
-        if discriminant < 0.0 {
-            return Vec::new();
-        }
-        else {
-            let dsq = discriminant.sqrt();
-            let t1 = (-b - dsq) / (2.0 * a);
-            let t2 = (-b + dsq) / (2.0 * a);
-            vec![
-                Intersection { object: &self, t: t1 },
-                Intersection { object: &self, t: t2 }]
+    pub fn intersects<'a>(&'a self, ray: &'a Ray) -> Vec<Intersection<'a>> {
+        match self.shape_type {
+            ShapeType::Sphere => sphere_intersects(&self, &ray),
+            ShapeType::Plane => sphere_intersects(&self, &ray)
         }
     }
 
     pub fn normal_at(&self, world_point: &Point) -> Vector {
-        let inverted_transform = self.transform.inverse();
-        let transposed_inverted_transform = inverted_transform.transpose();
-        let object_point = inverted_transform.multiply_tuple(&world_point);
-        let object_normal = object_point.subtract(&point!(0,0,0));
-        let mut world_normal = transposed_inverted_transform.multiply_tuple(&object_normal);
-        // hack to avoid problems with translations in the transform
-        world_normal.w = 0.0;
-        world_normal.normalize()
+        match self.shape_type {
+            ShapeType::Sphere => sphere_normal_at(&self, &world_point),
+            ShapeType::Plane => sphere_normal_at(&self, &world_point)
+        }
     }
 }
 
+fn sphere_intersects<'a>(shape: &'a Shape, ray: &'a Ray) -> Vec<Intersection<'a>> {
+    // transform the ray using the sphere transform before anything
+    let ray = ray.transform(&shape.transform.inverse());
+    // vector from sphere center to ray origin
+    let sphere_to_ray = ray.origin.subtract(&point!(0,0,0));
+    let a = ray.direction.dot(&ray.direction);
+    let b = ray.direction.dot(&sphere_to_ray) * 2.0;
+    let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
+    let discriminant = b * b - 4.0 * a * c;
+    if discriminant < 0.0 {
+        return Vec::new();
+    }
+    else {
+        let dsq = discriminant.sqrt();
+        let t1 = (-b - dsq) / (2.0 * a);
+        let t2 = (-b + dsq) / (2.0 * a);
+        vec![
+            Intersection { object: &shape, t: t1 },
+            Intersection { object: &shape, t: t2 }]
+    }
+}
+
+fn sphere_normal_at(shape: &Shape, world_point: &Point) -> Vector {
+    let inverted_transform = shape.transform.inverse();
+    let transposed_inverted_transform = inverted_transform.transpose();
+    let object_point = inverted_transform.multiply_tuple(&world_point);
+    let object_normal = object_point.subtract(&point!(0,0,0));
+    let mut world_normal = transposed_inverted_transform.multiply_tuple(&object_normal);
+    // hack to avoid problems with translations in the transform
+    world_normal.w = 0.0;
+    world_normal.normalize()
+}
+
+
 #[test]
 fn ray_sphere_intersects_test() {
-    let sphere = Sphere::new();
+    let sphere = Shape::sphere();
 
     // intersect sphere at two points passing through center
     let ray = Ray::new(point!(0,0,-5), vector!(0,0,1));
@@ -96,7 +117,7 @@ fn ray_sphere_intersects_test() {
 
 #[test]
 fn sphere_normal_at_origin_test() {
-    let sphere = Sphere::new();
+    let sphere = Shape::sphere();
     let sqrt3div3 = 3_f32.sqrt()/3.0;
 
     assert_eq!(sphere.normal_at(&point!(1,0,0)), vector!(1,0,0));
@@ -109,7 +130,7 @@ fn sphere_normal_at_origin_test() {
 
 #[test]
 fn sphere_normal_at_transformed_test() {
-    let mut sphere = Sphere::new();
+    let mut sphere = Shape::sphere();
 
     // translated off origin test
     sphere.transform = Matrix4x4::translation(0.0, 1.0, 0.0);
