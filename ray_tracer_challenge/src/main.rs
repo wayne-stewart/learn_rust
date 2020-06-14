@@ -46,6 +46,9 @@ fn create_world() -> World {
     let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
     world.lights.push(light);
 
+    let plane = Shape::plane();
+    world.objects.push(plane);
+
     let mut sphere = Shape::sphere();
     sphere.transform = Matrix4x4::translation(-0.5, 1.0, 0.5);
     sphere.material.color = rgb!(0.1,0.1,1);
