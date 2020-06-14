@@ -370,6 +370,21 @@ impl Matrix4x4 {
         a.r3c2 = zy;
         return a;
     }
+
+    pub fn view_transform(from: &Tuple, to: &Tuple, up: &Tuple) -> Matrix4x4 {
+        let forwardv = to.subtract(&from).normalize();
+        let upn = up.normalize();
+        let leftv = forwardv.cross(&upn);
+        let true_upv = leftv.cross(&forwardv);
+        let orientation = Matrix4x4::from_f32(
+            leftv.x,     leftv.y,     leftv.z,      0.0,
+            true_upv.x,  true_upv.y,  true_upv.z,   0.0,
+            -forwardv.x, -forwardv.y, -forwardv.z,  0.0,
+            0.0,         0.0,         0.0,          1.0
+        );
+        let translation = Matrix4x4::translation(-from.x, -from.y, -from.z);
+        orientation.multiply(&translation)
+    }
 }
 
 impl PartialEq for Matrix4x4 {
@@ -773,4 +788,40 @@ fn shearing_test() {
     // move z in proportion to y
     let transform = Matrix4x4::shearing(0.0,0.0,0.0,0.0,0.0,1.0);
     assert_eq!(transform.multiply_tuple(&point), point!(2,3,7));
+}
+
+#[test]
+fn view_transform_test() {
+    // default
+    let from = point!(0,0,0);
+    let to = point!(0,0,-1);
+    let up = vector!(0,1,0);
+    let transform = Matrix4x4::view_transform(&from, &to, &up);
+    assert_eq!(transform, MATRIX_4X4_IDENTITY);
+
+    // looking in positive z direction
+    let from = point!(0,0,0);
+    let to = point!(0,0,1);
+    let up = vector!(0,1,0);
+    let transform = Matrix4x4::view_transform(&from, &to, &up);
+    assert_eq!(transform, Matrix4x4::scaling(-1.0, 1.0, -1.0));
+
+    // moves everything back
+    let from = point!(0,0,8);
+    let to = point!(0,0,0);
+    let up = vector!(0,1,0);
+    let transform = Matrix4x4::view_transform(&from, &to, &up);
+    assert_eq!(transform, Matrix4x4::translation(0.0,0.0,-8.0));
+
+    let from = point!(1,3,2);
+    let to = point!(4,-2,8);
+    let up = vector!(1,1,0);
+    let transform = Matrix4x4::view_transform(&from, &to, &up);
+    let t = Matrix4x4::from_f32(
+        -0.50709, 0.50709, 0.67612, -2.36643,
+        0.76772, 0.60609, 0.12122, -2.82843,
+        -0.35857, 0.59761, -0.71714, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+    assert_eq!(transform, t);
 }
