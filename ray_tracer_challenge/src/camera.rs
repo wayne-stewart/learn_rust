@@ -6,7 +6,7 @@ use crate::vector;
 pub struct Camera {
     pub hsize: u32,
     pub vsize: u32,
-    field_of_view: f32,
+    //field_of_view: f32,
     pub transform: Matrix4x4,
     pixel_size: f32,
     half_width: f32,
@@ -30,7 +30,7 @@ impl Camera {
         Camera {
             hsize,
             vsize,
-            field_of_view,
+            //field_of_view,
             transform: crate::matrix::MATRIX_4X4_IDENTITY,
             half_width,
             half_height,

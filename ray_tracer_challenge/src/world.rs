@@ -36,7 +36,7 @@ impl World {
     }
 }
 
-pub struct HitComputations <'a> {
+struct HitComputations <'a> {
     object: &'a Sphere,
     t: f32,
     point: Point,

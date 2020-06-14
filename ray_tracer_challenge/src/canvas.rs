@@ -103,7 +103,7 @@ pub fn to_ppm(canvas : &Canvas) -> String {
 
 #[test]
 fn create_canvas_test() {
-    let a = create_canvas(10, 20);
+    let a = Canvas::new(10, 20);
     let pixel_count: usize = (a.width * a.height) as usize;
     let black = Color::rgb(0.0,0.0,0.0);
     assert_eq!(a.width, 10);
@@ -115,16 +115,16 @@ fn create_canvas_test() {
 
 #[test]
 fn set_get_pixel_test() {
-    let mut canvas = create_canvas(10, 20);
+    let mut canvas = Canvas::new(10, 20);
     let red = Color::rgb(1.0,0.0,0.0);
     let green = Color::rgb(0.0,1.0,0.0);
     let blue = Color::rgb(0.0,0.0,1.0);
-    set_pixel(&mut canvas, 0,0, &red);
-    set_pixel(&mut canvas, 9, 19, &green);
-    set_pixel(&mut canvas, 0, 19, &blue);
-    let r = get_pixel(&canvas, 0,0);
-    let g = get_pixel(&canvas, 9, 19);
-    let b = get_pixel(&canvas, 0, 19);
+    canvas.set_pixel(0,0, &red);
+    canvas.set_pixel(9, 19, &green);
+    canvas.set_pixel(0, 19, &blue);
+    let r = canvas.get_pixel(0,0);
+    let g = canvas.get_pixel(9, 19);
+    let b = canvas.get_pixel(0, 19);
     assert_eq!(red, r);
     assert_eq!(green, g);
     assert_eq!(blue, b);
@@ -132,7 +132,7 @@ fn set_get_pixel_test() {
 
 #[test]
 fn to_ppm_test() {
-    let canvas = create_canvas(5, 3);
+    let canvas = Canvas::new(5, 3);
     let s = to_ppm(&canvas);
     println!("{}",s);
 }
