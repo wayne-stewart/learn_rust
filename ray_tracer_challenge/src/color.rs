@@ -18,6 +18,7 @@ impl Color {
     }
 
     pub const BLACK : Color = rgb!(0,0,0);
+    pub const WHITE : Color = rgb!(1,1,1);
 
     pub fn add(&self, rhs: &Color) -> Color {
         Color {

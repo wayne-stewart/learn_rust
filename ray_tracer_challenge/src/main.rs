@@ -17,6 +17,7 @@ use canvas::Canvas;
 use light::Light;
 use shape::Shape;
 use matrix::Matrix4x4;
+use material::Pattern;
 
 /*
 view ppm files
@@ -46,11 +47,23 @@ fn create_world() -> World {
     let light = Light::point_light(point!(-10,10,-10), rgb!(1,1,1));
     world.lights.push(light);
 
-    let plane = Shape::plane();
+    let mut plane = Shape::plane();
+    plane.material.pattern = Pattern::stripe(rgb!(1,0.5,0.5), rgb!(0.5,1,0.5), matrix::MATRIX_4X4_IDENTITY);
+    world.objects.push(plane);
+
+    let mut plane = Shape::plane();
+    plane.material.pattern = Pattern::stripe(rgb!(1,0.5,0.5), rgb!(0.5,1,0.5), matrix::MATRIX_4X4_IDENTITY);
+    plane.material.specular = 0.0;
+    plane.transform = Matrix4x4::rotation_x(std::f32::consts::PI / 2.0)
+        .multiply(&Matrix4x4::translation(0.0,10.0,0.0));
     world.objects.push(plane);
 
     let mut sphere = Shape::sphere();
     sphere.transform = Matrix4x4::translation(-0.5, 1.0, 0.5);
+    let pattern_transform = Matrix4x4::scaling(0.1,0.1,0.1)
+        .multiply(&Matrix4x4::rotation_z(std::f32::consts::PI / 4.0))
+        .multiply(&Matrix4x4::rotation_y(std::f32::consts::PI / 4.0));
+    sphere.material.pattern = Pattern::stripe(rgb!(0.1,0.1,1), rgb!(1,1,1), pattern_transform);
     sphere.material.color = rgb!(0.1,0.1,1);
     sphere.material.diffuse = 0.7;
     sphere.material.specular = 0.3;

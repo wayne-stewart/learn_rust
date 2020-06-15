@@ -135,6 +135,7 @@ fn shade_hit(world: &World, comps: &HitComputations) -> Color {
         let in_shadow = is_shadowed(&world, &comps.over_point, &light);
         let color = lighting(
             &comps.object.material,
+            &comps.object,
             &light,
             &comps.point,
             &comps.eyev,
