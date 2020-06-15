@@ -52,7 +52,7 @@ fn create_world() -> World {
     world.objects.push(plane);
 
     let mut plane = Shape::plane();
-    plane.material.pattern = Pattern::stripe(rgb!(1,0.5,0.5), rgb!(0.5,1,0.5), matrix::MATRIX_4X4_IDENTITY);
+    plane.material.pattern = Pattern::checkered(rgb!(1,0.5,0.5), rgb!(0.5,1,0.5), matrix::MATRIX_4X4_IDENTITY);
     plane.material.specular = 0.0;
     plane.transform = Matrix4x4::rotation_x(std::f32::consts::PI / 2.0)
         .multiply(&Matrix4x4::translation(0.0,10.0,0.0));
