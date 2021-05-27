@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>HELLO WASM</title>
+    </head>
+    <body>
+        <h1 id="id_1">Replace Me!</h1>
+        <script>
+            const importObject = { };
+            WebAssembly.instantiateStreaming(fetch("wasm/hello_wasm.wasm"), importObject)
+                .then(obj => { 
+                    const h1 = document.getElementById('id_1');
+                    const num = obj.instance.exports.get_num();
+                    h1.innerHTML = "Number from WASM: " + num;
+                });
+        </script>
+    </body>
+</html>
