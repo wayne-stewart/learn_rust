@@ -24,3 +24,7 @@ pub extern "C" fn get_num() -> i32 {
     42
 }
 
+#[no_mangle]
+pub extern "C" fn inc(num: i32) -> i32 {
+    num + 1
+}

@@ -9,8 +9,12 @@
             WebAssembly.instantiateStreaming(fetch("wasm/hello_wasm.wasm"), importObject)
                 .then(obj => { 
                     const h1 = document.getElementById('id_1');
-                    const num = obj.instance.exports.get_num();
+                    let num = obj.instance.exports.get_num();
                     h1.innerHTML = "Number from WASM: " + num;
+                    setInterval(() => { 
+                        num = obj.instance.exports.inc(num);
+                        h1.innerHTML = "Number from WASM: " + num; 
+                    }, 1000);
                 });
         </script>
     </body>
