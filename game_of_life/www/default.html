@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <title>Conway's Game of Life</title>
+        <style>
+            * { 
+                padding:0px;
+                margin:0px;
+                overflow:hidden;
+            }
+            body {
+                height:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="main_canvas"></canvas>
+        <script>
+            const canvas = document.getElementById("main_canvas");
+            const g_context = canvas.getContext("2d");
+            canvas.height = document.body.clientHeight;
+            canvas.width = document.body.clientWidth;
+            let imageData = new ImageData(canvas.width, canvas.height);
+
+            // window.onresize = e => {
+            //     canvas.height = document.body.clientHeight;
+            //     canvas.width = document.body.clientWidth;
+            //     g_context.fillStyle = "#CCCCCC";
+            //     g_context.fillRect(0, 0, canvas.width, canvas.height);
+            // };
+
+            const GetStringFromWASM = function(memory, ptr, len) {
+                var buf = new Uint8Array(memory, ptr, len);
+                var msg = new TextDecoder('utf8').decode(buf);
+                return msg;
+            }
+
+            const SendStringToWASM = function(memory, ptr, len, msg) {
+
+            }
+
+            const importObject = { 
+                env: {
+                    jslog : s => console.log(s)
+                }
+            };
+
+            fetch("wasm/game_of_life.wasm")
+                .then(response => response.arrayBuffer())
+                .then(bytes => WebAssembly.instantiate(bytes, importObject))
+                .then(wasm => {
+                    let ptr = wasm.instance.exports.init_rgba_canvas(canvas.width, canvas.height);
+                    //console.log(ptr);
+                    let data = new Uint8Array(wasm.instance.exports.memory.buffer, ptr, imageData.data.length);
+                    wasm.instance.exports.render();
+                    imageData.data.set(data);
+                    g_context.putImageData(imageData, 0, 0);
+                    canvas.addEventListener("mousemove", e => {
+                        if (!isNaN(e.offsetX) && e.offsetX >= 0 && !isNaN(e.offsetY) && e.offsetY >= 0) {
+                            wasm.instance.exports.onmousemove(e.offsetX, e.offsetY);
+                        }
+                    });
+                    canvas.addEventListener("click", e => { 
+                        if (!isNaN(e.offsetX) && e.offsetX >= 0 && !isNaN(e.offsetY) && e.offsetY >= 0) {
+                            wasm.instance.exports.onclick(e.offsetX, e.offsetY);
+                        }
+                    });
+                    const animation_loop = t => { 
+                        wasm.instance.exports.render();
+                        imageData.data.set(data);
+                        g_context.putImageData(imageData, 0, 0);
+                        requestAnimationFrame(animation_loop);
+                    };
+                    requestAnimationFrame(animation_loop);
+                });
+        </script>
+    </body>
+</html>
