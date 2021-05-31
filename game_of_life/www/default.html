@@ -10,11 +10,56 @@
             body {
                 height:100%;
             }
+            #main_controls {
+                display: block;
+                border-radius: 0.5em;
+                width:auto;
+                height:auto;
+                padding: 1em;
+                position:absolute;
+                right:1em;
+                top:1em;
+                font-size:1em;
+                background-color: white;
+                box-shadow: 3px 3px 4px grey;
+            }
+
+            #main_controls button {
+                border-radius: 0.2em;
+                padding:0.5em 1em 0.5em 1em;
+                width:5em;
+                margin-top:0.2em;
+            }
+
+            #main_controls button.wide {
+                width:100%;
+            }
+
+            /*#main_controls p {
+                padding-bottom:0.2em;
+            }*/
         </style>
     </head>
     <body>
         <canvas id="main_canvas"></canvas>
+        <div id="main_controls">
+            <p>John Conway's Game of Life</p>
+            <button id="btn_start">Start</button>
+            <button id="btn_tick">Tick</button>
+            <button id="btn_stop">Stop</button>
+            <br />
+            <button id="btn_clear">Clear</button>
+            <button id="btn_export">Export</button>
+            <p>Patterns</p>
+            <button id="btn_pulsar" class="wide">Pulsar</button>
+        </div>
         <script>
+            const ctl_panel = document.getElementById("main_controls");
+            const btn_start = document.getElementById("btn_start");
+            const btn_tick = document.getElementById("btn_tick");
+            const btn_stop = document.getElementById("btn_stop");
+            const btn_clear = document.getElementById("btn_clear");
+
             const canvas = document.getElementById("main_canvas");
             const g_context = canvas.getContext("2d");
             canvas.height = document.body.clientHeight;
@@ -48,12 +93,18 @@
                 .then(response => response.arrayBuffer())
                 .then(bytes => WebAssembly.instantiate(bytes, importObject))
                 .then(wasm => {
-                    let ptr = wasm.instance.exports.init_rgba_canvas(canvas.width, canvas.height);
-                    //console.log(ptr);
-                    let data = new Uint8Array(wasm.instance.exports.memory.buffer, ptr, imageData.data.length);
-                    wasm.instance.exports.render();
-                    imageData.data.set(data);
-                    g_context.putImageData(imageData, 0, 0);
+                    wasm.instance.exports.init_rgba_canvas(canvas.width, canvas.height);
+
+                    const render = () => { 
+                        let ptr = wasm.instance.exports.get_canvas_ptr();
+                        let data = new Uint8Array(wasm.instance.exports.memory.buffer, ptr, imageData.data.length);
+                        wasm.instance.exports.render();
+                        imageData.data.set(data);
+                        g_context.putImageData(imageData, 0, 0);
+                    };
+
+                    render();
+
                     canvas.addEventListener("mousemove", e => {
                         if (!isNaN(e.offsetX) && e.offsetX >= 0 && !isNaN(e.offsetY) && e.offsetY >= 0) {
                             wasm.instance.exports.onmousemove(e.offsetX, e.offsetY);
@@ -64,10 +115,27 @@
                             wasm.instance.exports.onclick(e.offsetX, e.offsetY);
                         }
                     });
+                    ctl_panel.style.display = "block";
+                    btn_start.addEventListener("click", e => { 
+                        running = true;
+                    });
+                    btn_tick.addEventListener("click", e => { 
+                        wasm.instance.exports.tick();
+                    });
+                    btn_stop.addEventListener("click", e => { 
+                        running = false;
+                    });
+                    btn_clear.addEventListener("click", e => { 
+                        wasm.instance.exports.clear();
+                    });
+
+                    let running = false;
+
                     const animation_loop = t => { 
-                        wasm.instance.exports.render();
-                        imageData.data.set(data);
-                        g_context.putImageData(imageData, 0, 0);
+                        if (running) {
+                            wasm.instance.exports.tick();
+                        }
+                        render();
                         requestAnimationFrame(animation_loop);
                     };
                     requestAnimationFrame(animation_loop);
