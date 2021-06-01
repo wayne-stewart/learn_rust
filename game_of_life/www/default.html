@@ -51,7 +51,9 @@
             <button id="btn_clear">Clear</button>
             <button id="btn_export">Export</button>
             <p>Patterns</p>
-            <button id="btn_pulsar" class="wide">Pulsar</button>
+            <button id="btn_gliders" class="wide pattern" data-coords="46,30,50,30,45,31,46,31,50,31,51,31,45,32,47,32,49,32,51,32,45,34,47,34,49,34,51,34,45,35,46,35,50,35,51,35,46,36,50,36">Gliders</button>
+            <button id="btn_pulsar" class="wide pattern" data-coords="41,27,42,27,43,27,47,27,48,27,49,27,39,29,44,29,46,29,51,29,39,30,44,30,46,30,51,30,39,31,44,31,46,31,51,31,41,32,42,32,43,32,47,32,48,32,49,32,41,34,42,34,43,34,47,34,48,34,49,34,39,35,44,35,46,35,51,35,39,36,44,36,46,36,51,36,39,37,44,37,46,37,51,37,41,39,42,39,43,39,47,39,48,39,49,39">Pulsar</button>
+            <button id="btn_glider_gun1" class="wide pattern" data-coords="45,27,43,28,45,28,33,29,34,29,41,29,42,29,55,29,56,29,32,30,36,30,41,30,42,30,55,30,56,30,21,31,22,31,31,31,37,31,41,31,42,31,21,32,22,32,31,32,35,32,37,32,38,32,43,32,45,32,31,33,37,33,45,33,32,34,36,34,33,35,34,35">Gosper's Glider Gun</button>
         </div>
         <script>
             const ctl_panel = document.getElementById("main_controls");
@@ -59,6 +61,9 @@
             const btn_tick = document.getElementById("btn_tick");
             const btn_stop = document.getElementById("btn_stop");
             const btn_clear = document.getElementById("btn_clear");
+            const btn_export = document.getElementById("btn_export");
+
+            const BUFFER_LENGTH = 1024;
 
             const canvas = document.getElementById("main_canvas");
             const g_context = canvas.getContext("2d");
@@ -66,21 +71,10 @@
             canvas.width = document.body.clientWidth;
             let imageData = new ImageData(canvas.width, canvas.height);
 
-            // window.onresize = e => {
-            //     canvas.height = document.body.clientHeight;
-            //     canvas.width = document.body.clientWidth;
-            //     g_context.fillStyle = "#CCCCCC";
-            //     g_context.fillRect(0, 0, canvas.width, canvas.height);
-            // };
-
-            const GetStringFromWASM = function(memory, ptr, len) {
+            const get_string_from_wasm = function(memory, ptr, len) {
                 var buf = new Uint8Array(memory, ptr, len);
                 var msg = new TextDecoder('utf8').decode(buf);
                 return msg;
-            }
-
-            const SendStringToWASM = function(memory, ptr, len, msg) {
-
             }
 
             const importObject = { 
@@ -128,6 +122,27 @@
                     btn_clear.addEventListener("click", e => { 
                         wasm.instance.exports.clear();
                     });
+                    btn_export.addEventListener("click", e => { 
+                        console.log("Exporting...");
+                        let len = wasm.instance.exports.export();
+                        let ptr = wasm.instance.exports.get_buffer_ptr();
+                        let buf_i32 = new Int32Array(wasm.instance.exports.memory.buffer, ptr, len);
+                        let coords = buf_i32.join(",");
+                        console.log(coords);
+                    });
+                    let pattern_buttons = document.querySelectorAll(".pattern");
+                    for(let i = 0, btn; btn = pattern_buttons[i]; i++) {
+                        btn.addEventListener("click", e => { 
+                            let s = e.target.getAttribute("data-coords");
+                            let coords = s.split(",");
+                            let ptr = wasm.instance.exports.get_buffer_ptr();
+                            let buf_i32 = new Int32Array(wasm.instance.exports.memory.buffer, ptr, BUFFER_LENGTH / 4);
+                            for(var i = 0, x; x = coords[i]; i++) {
+                                buf_i32[i] = x;
+                            }
+                            wasm.instance.exports.import(coords.length);
+                        });
+                    }
 
                     let running = false;
 

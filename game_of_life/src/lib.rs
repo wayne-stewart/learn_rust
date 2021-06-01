@@ -61,18 +61,26 @@ impl GameState {
         }
     }
 
-    pub fn find_cell_index(&self) -> usize {
+    pub fn find_cell_index_mouse_hover(&self) -> usize {
         let cell_hover_x = (self.mouse_x as f32 / self.cell_size) as usize;
         let cell_hover_y = (self.mouse_y as f32 / self.cell_size) as usize;
         return cell_hover_y * self.cell_col_count + cell_hover_x;
     }
 
-    pub fn toggle_cell(&mut self) {
-        let i = self.find_cell_index();
+    pub fn toggle_cell_mouse_hover(&mut self) {
+        let i = self.find_cell_index_mouse_hover();
+        self.toggle_cell(i);
+    }
+
+    pub fn toggle_cell_xy(&mut self, x: usize, y: usize) {
+        self.toggle_cell(y * self.cell_col_count + x);
+    }
+
+    pub fn toggle_cell(&mut self, index: usize) {
         let mut cells = self.cells.borrow_mut();
-        match cells[i] {
-            Cell::Alive => { cells[i] = Cell::Dead; },
-            Cell::Dead => { cells[i] = Cell::Alive; },
+        match cells[index] {
+            Cell::Alive => { cells[index] = Cell::Dead; },
+            Cell::Dead => { cells[index] = Cell::Alive; },
             _ => { }
         }
     }
@@ -322,7 +330,7 @@ pub fn onclick(x: usize, y: usize) {
     let state = &mut GAME_STATE.lock().unwrap();
     state.mouse_x = std::cmp::min(std::cmp::max(x, 2), state.mouse_x_max);
     state.mouse_y = std::cmp::min(std::cmp::max(y, 2), state.mouse_y_max);
-    state.toggle_cell();
+    state.toggle_cell_mouse_hover();
 }
 
 #[no_mangle]
@@ -338,21 +346,59 @@ pub fn tick() {
 }
 
 #[no_mangle]
-pub fn export() {
-    // let state = &mut GAME_STATE.lock().unwrap();
-    // let cells = state.cells.borrow();
-    // let buffer = state.buffer.borrow_mut();
-    // for y in 0..row_count {
-    //     for x in 0..col_count {
-    //         let cell_index = y * col_count + x;
-    //         match cells[cell_index] {
-    //             Cell::Alive => { 
-    //                 let y = (y as f32 * cell_size) as usize;
-    //                 let x = (x as f32 * cell_size) as usize;
-    //                 render_fill_rect(&mut canvas_data, width, height, Color::YELLOW, x + 1, y + 1, cell_size_usize, cell_size_usize);
-    //             },
-    //             _ => { }
-    //         }
-    //     }
-    // }
+pub unsafe fn export() -> usize {
+    let state = &mut GAME_STATE.lock().unwrap();
+    let mut buffer = state.buffer.borrow_mut();
+
+    // use the general purpose buffer to communicate with javsacript
+    // alias the buffer into a new Vec<i32> so we can write 
+    // coordinates into it.
+    //buffer.truncate(0);
+    let buf_ptr = buffer.as_mut_ptr();
+    let mut buf_i32: Vec<i32> = Vec::from_raw_parts(buf_ptr as *mut i32, 0, buffer.capacity() / 4);
+
+    for y in 0.. state.cell_row_count {
+        for x in 0..state.cell_col_count {
+            if state.is_alive(x,y) {
+                buf_i32.push(x as i32);
+                buf_i32.push(y as i32);
+            }
+        }
+    }
+    
+    // return the length so javascript knows how much to read
+    // from the general purpose buffer
+    // forget the temporary buf_i32 instance so Rust doesn't free
+    // the memory when the function goes out of scope.
+    let len = buf_i32.len();
+    std::mem::forget(buf_i32);
+    len
 }
+
+#[no_mangle]
+pub unsafe fn import(len: usize) { 
+    let state = &mut GAME_STATE.lock().unwrap();
+    state.kill_all();
+    let mut coords: Vec<(usize,usize)> = vec![];
+
+    let mut buffer = state.buffer.borrow_mut();
+    let buf_ptr = buffer.as_mut_ptr();
+    let buf_i32: Vec<i32> = Vec::from_raw_parts(buf_ptr as *mut i32, len, buffer.capacity() / 4);
+
+    for i in 0..(len/2) {
+        let i = i * 2;
+        let x = buf_i32[i];
+        let y = buf_i32[i+1];
+        coords.push((x as usize, y as usize));
+    }
+    // forget to prevent the vector destructor from running since it is an alias
+    std::mem::forget(buf_i32);
+    // drop to let rust know we are done with this immutable reference so we can mutate later
+    std::mem::drop(buffer);
+
+    for coord in coords.iter() {
+        state.toggle_cell_xy(coord.0, coord.1);
+    }
+
+}
+
