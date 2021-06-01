@@ -9,6 +9,7 @@ extern "C" {
 use std::sync::Mutex;
 use std::cell::RefCell;
 
+#[derive(Copy,Clone)]
 enum Cell {
     Alive,
     Dead,
@@ -36,6 +37,7 @@ struct GameState {
     cell_row_count: usize,
     cell_col_count: usize,
     cells: RefCell<Vec<Cell>>,
+    cells_save: RefCell<Vec<Cell>>,
     buffer: RefCell<Vec<u8>>,
     mouse_x: usize,
     mouse_y: usize,
@@ -53,6 +55,7 @@ impl GameState {
             cell_row_count: 0,
             cell_col_count: 0,
             cells: RefCell::new(Vec::with_capacity(0)),
+            cells_save: RefCell::new(Vec::with_capacity(0)),
             buffer: RefCell::new(Vec::with_capacity(1024)),
             mouse_x: 0,
             mouse_y: 0,
@@ -82,6 +85,22 @@ impl GameState {
             Cell::Alive => { cells[index] = Cell::Dead; },
             Cell::Dead => { cells[index] = Cell::Alive; },
             _ => { }
+        }
+    }
+
+    pub fn save(&mut self) {
+        let cells = self.cells.borrow();
+        let mut saved = self.cells_save.borrow_mut();
+        for i in 0..cells.len() {
+            saved[i] = cells[i];
+        }
+    }
+
+    pub fn restore(&mut self) {
+        let mut cells = self.cells.borrow_mut();
+        let saved = self.cells_save.borrow();
+        for i in 0..cells.len() {
+            cells[i] = saved[i];
         }
     }
 
@@ -288,6 +307,10 @@ pub extern "C" fn init_rgba_canvas(width: usize, height: usize) {
     state.cells = RefCell::new((0..(state.cell_col_count * state.cell_row_count))
         .map(|_x| Cell::Dead)
         .collect());
+    
+    state.cells_save = RefCell::new((0..(state.cell_col_count * state.cell_row_count))
+        .map(|_x| Cell::Dead)
+        .collect());
 
     state.canvas_data = RefCell::new((0..(width * height * 4))
         .map(|_x| 0xFF)
@@ -343,6 +366,18 @@ pub fn clear() {
 pub fn tick() { 
     let state = &mut GAME_STATE.lock().unwrap();
     state.tick();
+}
+
+#[no_mangle]
+pub fn save() {
+    let state = &mut GAME_STATE.lock().unwrap();
+    state.save();
+}
+
+#[no_mangle]
+pub fn restore() {
+    let state = &mut GAME_STATE.lock().unwrap();
+    state.restore();
 }
 
 #[no_mangle]

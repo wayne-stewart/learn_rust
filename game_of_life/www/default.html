@@ -26,13 +26,25 @@
 
             #main_controls button {
                 border-radius: 0.2em;
-                padding:0.5em 1em 0.5em 1em;
+                border-style: solid;
+                border-color: lightsteelblue;
+                border-width: 1px;
+                padding-top:0.5em;
+                padding-bottom:0.5em;
                 width:5em;
                 margin-top:0.2em;
+                background-color: lavender;
+            }
+
+            #main_controls button:hover {
+                background-color:lightsteelblue;
             }
 
             #main_controls button.wide {
-                width:100%;
+                width:15.5em;
+                padding-left:0em;
+                padding-right:0em;
+                display:block;
             }
 
             /*#main_controls p {
@@ -49,11 +61,15 @@
             <button id="btn_stop">Stop</button>
             <br />
             <button id="btn_clear">Clear</button>
-            <button id="btn_export">Export</button>
+            <button id="btn_save">Save</button>
+            <button id="btn_restore">Restore</button>
+            <br />
+            <button id="btn_export" class="wide">Export</button>
             <p>Patterns</p>
             <button id="btn_gliders" class="wide pattern" data-coords="46,30,50,30,45,31,46,31,50,31,51,31,45,32,47,32,49,32,51,32,45,34,47,34,49,34,51,34,45,35,46,35,50,35,51,35,46,36,50,36">Gliders</button>
             <button id="btn_pulsar" class="wide pattern" data-coords="41,27,42,27,43,27,47,27,48,27,49,27,39,29,44,29,46,29,51,29,39,30,44,30,46,30,51,30,39,31,44,31,46,31,51,31,41,32,42,32,43,32,47,32,48,32,49,32,41,34,42,34,43,34,47,34,48,34,49,34,39,35,44,35,46,35,51,35,39,36,44,36,46,36,51,36,39,37,44,37,46,37,51,37,41,39,42,39,43,39,47,39,48,39,49,39">Pulsar</button>
             <button id="btn_glider_gun1" class="wide pattern" data-coords="45,27,43,28,45,28,33,29,34,29,41,29,42,29,55,29,56,29,32,30,36,30,41,30,42,30,55,30,56,30,21,31,22,31,31,31,37,31,41,31,42,31,21,32,22,32,31,32,35,32,37,32,38,32,43,32,45,32,31,33,37,33,45,33,32,34,36,34,33,35,34,35">Gosper's Glider Gun</button>
+            <button id="btn_spaceship1" class="wide pattern" data-coords="35,38,36,38,37,38,48,38,49,38,50,38,30,39,31,39,32,39,34,39,42,39,43,39,51,39,53,39,54,39,55,39,34,40,38,40,41,40,44,40,47,40,51,40,34,41,40,41,45,41,51,41,40,42,41,42,44,42,45,42,37,43,41,43,44,43,48,43,37,44,39,44,46,44,48,44,38,45,39,45,40,45,41,45,42,45,43,45,44,45,45,45,46,45,47,45,40,46,45,46,38,47,47,47,37,48,48,48,38,49,47,49">Space Ship 56P6H1V0</button>
         </div>
         <script>
             const ctl_panel = document.getElementById("main_controls");
@@ -61,6 +77,8 @@
             const btn_tick = document.getElementById("btn_tick");
             const btn_stop = document.getElementById("btn_stop");
             const btn_clear = document.getElementById("btn_clear");
+            const btn_save = document.getElementById("btn_save");
+            const btn_restore = document.getElementById("btn_restore");
             const btn_export = document.getElementById("btn_export");
 
             const BUFFER_LENGTH = 1024;
@@ -83,50 +101,44 @@
                 }
             };
 
+            const call_coord_handler = function(x,y,f) {
+                if (!isNaN(x) && x >= 0 && !isNaN(y) && y >= 0) {
+                    f(x, y);
+                }
+            }
+
             fetch("wasm/game_of_life.wasm")
                 .then(response => response.arrayBuffer())
                 .then(bytes => WebAssembly.instantiate(bytes, importObject))
-                .then(wasm => {
-                    wasm.instance.exports.init_rgba_canvas(canvas.width, canvas.height);
+                .then(wasm_module => {
+                    const wasm = wasm_module.instance.exports;
+
+                    wasm.init_rgba_canvas(canvas.width, canvas.height);
 
                     const render = () => { 
-                        let ptr = wasm.instance.exports.get_canvas_ptr();
-                        let data = new Uint8Array(wasm.instance.exports.memory.buffer, ptr, imageData.data.length);
-                        wasm.instance.exports.render();
+                        let ptr = wasm.get_canvas_ptr();
+                        let data = new Uint8Array(wasm.memory.buffer, ptr, imageData.data.length);
+                        wasm.render();
                         imageData.data.set(data);
                         g_context.putImageData(imageData, 0, 0);
                     };
 
                     render();
-
-                    canvas.addEventListener("mousemove", e => {
-                        if (!isNaN(e.offsetX) && e.offsetX >= 0 && !isNaN(e.offsetY) && e.offsetY >= 0) {
-                            wasm.instance.exports.onmousemove(e.offsetX, e.offsetY);
-                        }
-                    });
-                    canvas.addEventListener("click", e => { 
-                        if (!isNaN(e.offsetX) && e.offsetX >= 0 && !isNaN(e.offsetY) && e.offsetY >= 0) {
-                            wasm.instance.exports.onclick(e.offsetX, e.offsetY);
-                        }
-                    });
                     ctl_panel.style.display = "block";
-                    btn_start.addEventListener("click", e => { 
-                        running = true;
-                    });
-                    btn_tick.addEventListener("click", e => { 
-                        wasm.instance.exports.tick();
-                    });
-                    btn_stop.addEventListener("click", e => { 
-                        running = false;
-                    });
-                    btn_clear.addEventListener("click", e => { 
-                        wasm.instance.exports.clear();
-                    });
+
+                    canvas.addEventListener("mousemove", e => call_coord_handler(e.offsetX, e.offsetY, wasm.onmousemove));
+                    canvas.addEventListener("click", e => call_coord_handler(e.offsetX, e.offsetY, wasm.onclick));
+                    btn_start.addEventListener("click", e => { running = true; });
+                    btn_tick.addEventListener("click", e => wasm.tick());
+                    btn_stop.addEventListener("click", e => { running = false; });
+                    btn_clear.addEventListener("click", e => wasm.clear());
+                    btn_save.addEventListener("click", e => wasm.save());
+                    btn_restore.addEventListener("click", e => wasm.restore());
                     btn_export.addEventListener("click", e => { 
                         console.log("Exporting...");
-                        let len = wasm.instance.exports.export();
-                        let ptr = wasm.instance.exports.get_buffer_ptr();
-                        let buf_i32 = new Int32Array(wasm.instance.exports.memory.buffer, ptr, len);
+                        let len = wasm.export();
+                        let ptr = wasm.get_buffer_ptr();
+                        let buf_i32 = new Int32Array(wasm.memory.buffer, ptr, len);
                         let coords = buf_i32.join(",");
                         console.log(coords);
                     });
@@ -135,12 +147,12 @@
                         btn.addEventListener("click", e => { 
                             let s = e.target.getAttribute("data-coords");
                             let coords = s.split(",");
-                            let ptr = wasm.instance.exports.get_buffer_ptr();
-                            let buf_i32 = new Int32Array(wasm.instance.exports.memory.buffer, ptr, BUFFER_LENGTH / 4);
+                            let ptr = wasm.get_buffer_ptr();
+                            let buf_i32 = new Int32Array(wasm.memory.buffer, ptr, BUFFER_LENGTH / 4);
                             for(var i = 0, x; x = coords[i]; i++) {
                                 buf_i32[i] = x;
                             }
-                            wasm.instance.exports.import(coords.length);
+                            wasm.import(coords.length);
                         });
                     }
 
@@ -148,7 +160,7 @@
 
                     const animation_loop = t => { 
                         if (running) {
-                            wasm.instance.exports.tick();
+                            wasm.tick();
                         }
                         render();
                         requestAnimationFrame(animation_loop);
