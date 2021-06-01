@@ -431,9 +431,21 @@ pub unsafe fn import(len: usize) {
     // drop to let rust know we are done with this immutable reference so we can mutate later
     std::mem::drop(buffer);
 
+    // find out how "big" the pattern is and center it in the available space
+    let mut x_max = 0;
+    let mut x_min = usize::max_value();
+    let mut y_max = 0;
+    let mut y_min = usize::max_value();
     for coord in coords.iter() {
-        state.toggle_cell_xy(coord.0, coord.1);
+        x_max = std::cmp::max(coord.0, x_max);
+        x_min = std::cmp::min(coord.0, x_min);
+        y_max = std::cmp::max(coord.1, y_max);
+        y_min = std::cmp::min(coord.1, y_min);
     }
-
+    let x_offset = state.cell_col_count / 2 - (x_max - x_min) / 2;
+    let y_offset = state.cell_row_count / 2 - (y_max - y_min) / 2;
+    for coord in coords.iter() {
+        state.toggle_cell_xy(coord.0 - x_min + x_offset, coord.1 - y_min + y_offset);
+    }
 }
 
