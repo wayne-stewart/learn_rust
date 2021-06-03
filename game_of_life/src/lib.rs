@@ -147,10 +147,12 @@ impl GameState {
             (x+1, y+1)
             ];
         let mut count = 0;
-        for coord in pairs.iter() {
-            if coord.0 >= 0 && coord.0 < xlen &&
-               coord.1 >= 0 && coord.1 < ylen {
-                   count += cells[coord.1 as usize * stride + coord.0 as usize].is_alive();
+        for (cx,cy) in pairs.iter() {
+            let cx = *cx;
+            let cy = *cy;
+            if cx >= 0 && cx < xlen &&
+               cy >= 0 && cy < ylen {
+                   count += cells[cy as usize * stride + cx as usize].is_alive();
                }
         }
         count
