@@ -56,7 +56,7 @@ impl GameState {
             cell_col_count: 0,
             cells: RefCell::new(Vec::with_capacity(0)),
             cells_save: RefCell::new(Vec::with_capacity(0)),
-            buffer: RefCell::new(Vec::with_capacity(1024)),
+            buffer: RefCell::new(Vec::with_capacity(8192)),
             mouse_x: 0,
             mouse_y: 0,
             mouse_x_max: 0,
