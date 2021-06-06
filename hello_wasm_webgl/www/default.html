@@ -1,21 +1,119 @@
 <html>
     <head>
         <title>HELLO WASM</title>
+        <style>
+            * {
+                padding: 0px;
+                margin: 0px;
+            }
+        </style>
     </head>
     <body>
-        <h1 id="id_1">Replace Me!</h1>
+        <canvas id="id_2"></canvas>
         <script>
-            const importObject = { };
-            WebAssembly.instantiateStreaming(fetch("wasm/hello_wasm_webgl.wasm"), importObject)
-                .then(obj => { 
-                    const h1 = document.getElementById('id_1');
-                    let num = obj.instance.exports.get_num();
-                    h1.innerHTML = "Number from WASM: " + num;
-                    setInterval(() => { 
-                        num = obj.instance.exports.inc(num);
-                        h1.innerHTML = "Number from WASM: " + num; 
-                    }, 1000);
-                });
+            //const importObject = { };
+            // WebAssembly.instantiateStreaming(fetch("wasm/hello_wasm_webgl.wasm"), importObject)
+            //     .then(obj => { 
+            //         const h1 = document.getElementById('id_1');
+            //         let num = obj.instance.exports.get_num();
+            //         h1.innerHTML = "Number from WASM: " + num;
+            //         setInterval(() => { 
+            //             num = obj.instance.exports.inc(num);
+            //             h1.innerHTML = "Number from WASM: " + num; 
+            //         }, 1000);
+            //     });
+            const canvas = document.getElementById("id_2");
+            const onresize = e => { 
+                canvas.height = document.body.clientHeight;
+                canvas.width = document.body.clientWidth;
+            };
+            window.addEventListener("resize", onresize);
+            onresize();
+            const webgl = canvas.getContext("webgl2");
+            const vert_shader_src = `#version 300 es
+            in vec4 a_position;
+            
+            void main() {
+                gl_Position = a_position;
+            }`;
+            const frag_shader_src = `#version 300 es
+            precision highp float;
+            out vec4 out_color;
+            void main() {
+                out_color = vec4(1,0,0.5,1);
+            }`;
+            const create_shader = (gl, type, src) => {
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, src);
+                gl.compileShader(shader);
+                let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+                if (success) return shader;
+                console.log(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+            };
+            const create_program = (gl, vert_shader, frag_shader) => {
+                let program = gl.createProgram();
+                gl.attachShader(program, vert_shader);
+                gl.attachShader(program, frag_shader);
+                gl.linkProgram(program);
+                let success = gl.getProgramParameter(program, gl.LINK_STATUS);
+                if (success) return program;
+                console.log(gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+            };
+            const quad_from_rect = (x,y,w,h) => {
+                let positions = [
+                    x  ,y,
+                    x+w,y,
+                    x  ,y-h,
+                    x  ,y-h,
+                    x+w,y,
+                    x+w,y-h];
+                return new Float32Array(positions);
+            };
+            const immediate_quad = (gl,x,y,w,h) => { 
+                let vertex_array = quad_from_rect(x,y,w,h);
+                webgl.bufferData(webgl.ARRAY_BUFFER, vertex_array, webgl.STATIC_DRAW);
+                let primitive_type = webgl.TRIANGLES;
+                offset = 0;
+                let count = 6;
+                gl.drawArrays(primitive_type, offset, count);
+            };
+            if (!webgl) {
+                document.querySelector("#id_1").innerHTML = "WebGL 2 not found";
+            }
+            else {
+                let vert_shader = create_shader(webgl, webgl.VERTEX_SHADER, vert_shader_src);
+                let frag_shader = create_shader(webgl, webgl.FRAGMENT_SHADER, frag_shader_src);
+                let program = create_program(webgl, vert_shader, frag_shader);
+                let a_position_ref = webgl.getAttribLocation(program, "a_position");
+
+                let position_buffer = webgl.createBuffer();
+
+                let vertex_array = webgl.createVertexArray();
+                webgl.bindVertexArray(vertex_array);
+                webgl.enableVertexAttribArray(a_position_ref);
+
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, position_buffer);
+
+                let size = 2;
+                let type = webgl.FLOAT;
+                let normalize = false;
+                let stride = 0;
+                let offset = 0;
+                webgl.vertexAttribPointer(a_position_ref, size, type, normalize, stride, offset);
+
+                webgl.viewport(0,0,webgl.canvas.width, webgl.canvas.height);
+
+                webgl.clearColor(0,0,0,0);
+                webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+
+                webgl.useProgram(program);
+                webgl.bindVertexArray(vertex_array);
+
+                immediate_quad(webgl, -0.9,0.9, 1, 1);
+                immediate_quad(webgl, -0.1,0.1, 1, 1);
+            }
         </script>
     </body>
 </html>
