@@ -38,9 +38,10 @@
             }`;
             const frag_shader_src = `#version 300 es
             precision highp float;
+            uniform vec4 u_color;
             out vec4 out_color;
             void main() {
-                out_color = vec4(1,0,0.5,1);
+                out_color = u_color;
             }`;
             const create_shader = (gl, type, src) => {
                 var shader = gl.createShader(type);
@@ -71,13 +72,14 @@
                     x+w,y-h];
                 return new Float32Array(positions);
             };
-            const immediate_quad = (gl,x,y,w,h) => { 
+            const immediate_quad = (context,x,y,w,h,r,g,b) => { 
                 let vertex_array = quad_from_rect(x,y,w,h);
-                webgl.bufferData(webgl.ARRAY_BUFFER, vertex_array, webgl.STATIC_DRAW);
+                context.gl.bufferData(webgl.ARRAY_BUFFER, vertex_array, webgl.STATIC_DRAW);
+                context.gl.uniform4f(context.color_uniform, r,g,b,1);
                 let primitive_type = webgl.TRIANGLES;
                 offset = 0;
                 let count = 6;
-                gl.drawArrays(primitive_type, offset, count);
+                context.gl.drawArrays(primitive_type, offset, count);
             };
             if (!webgl) {
                 document.querySelector("#id_1").innerHTML = "WebGL 2 not found";
@@ -86,13 +88,15 @@
                 let vert_shader = create_shader(webgl, webgl.VERTEX_SHADER, vert_shader_src);
                 let frag_shader = create_shader(webgl, webgl.FRAGMENT_SHADER, frag_shader_src);
                 let program = create_program(webgl, vert_shader, frag_shader);
-                let a_position_ref = webgl.getAttribLocation(program, "a_position");
+
+                let a_position_location = webgl.getAttribLocation(program, "a_position");
+                let u_color_location = webgl.getUniformLocation(program, "u_color");
 
                 let position_buffer = webgl.createBuffer();
 
                 let vertex_array = webgl.createVertexArray();
                 webgl.bindVertexArray(vertex_array);
-                webgl.enableVertexAttribArray(a_position_ref);
+                webgl.enableVertexAttribArray(a_position_location);
 
                 webgl.bindBuffer(webgl.ARRAY_BUFFER, position_buffer);
 
@@ -101,7 +105,7 @@
                 let normalize = false;
                 let stride = 0;
                 let offset = 0;
-                webgl.vertexAttribPointer(a_position_ref, size, type, normalize, stride, offset);
+                webgl.vertexAttribPointer(a_position_location, size, type, normalize, stride, offset);
 
                 webgl.viewport(0,0,webgl.canvas.width, webgl.canvas.height);
 
@@ -111,8 +115,12 @@
                 webgl.useProgram(program);
                 webgl.bindVertexArray(vertex_array);
 
-                immediate_quad(webgl, -0.9,0.9, 1, 1);
-                immediate_quad(webgl, -0.1,0.1, 1, 1);
+                let context = { gl: webgl, color_uniform: u_color_location };
+                let d = 2/5;
+                let od = 1/5;
+                immediate_quad(context, -d,d, d, d, 1,0,0);
+                immediate_quad(context, -d+od,d-od, d, d, 0,1,0);
+                immediate_quad(context, -d+od+od,d-od-od, d, d, 0,0,1);
             }
         </script>
     </body>
